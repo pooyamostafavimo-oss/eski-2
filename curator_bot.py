@@ -24,6 +24,8 @@ Extra features:
   single post instead of being split into separate messages.
 - Telegram FloodWait errors are handled by waiting it out instead of
   crashing the run.
+- A watermark/signature (e.g. your channel link) is appended to the end
+  of every post, text or media caption.
 
 Designed to run on a schedule (GitHub Actions cron, every 1-2 hours).
 State (last seen message id per source channel, plus recently-posted
@@ -54,6 +56,27 @@ API_HASH = os.environ["TG_API_HASH"]
 SESSION_STRING = os.environ["TG_SESSION_STRING"]
 
 TARGET_CHANNEL = os.environ["TARGET_CHANNEL"]  # e.g. "@my_channel"
+
+# Watermark/signature appended to the end of every post (e.g. your
+# channel's own link). Leave WATERMARK_TEXT empty to disable.
+WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "https://t.me/KosSherijat_69"
+
+# Telegram limits: 4096 chars for a plain text message, 1024 for a
+# media caption. We trim the generated text so the watermark always fits.
+MAX_TEXT_LEN = 4096
+MAX_CAPTION_LEN = 1024
+
+
+def add_watermark(text: str, is_caption: bool) -> str:
+    if not WATERMARK_TEXT:
+        return text
+    limit = MAX_CAPTION_LEN if is_caption else MAX_TEXT_LEN
+    footer = f"\n\n{WATERMARK_TEXT}"
+    room = limit - len(footer)
+    if room < 0:
+        return WATERMARK_TEXT[:limit]
+    trimmed = text[:room].rstrip() if len(text) > room else text
+    return f"{trimmed}{footer}" if trimmed else WATERMARK_TEXT
 
 # Gemini - supports multiple comma-separated keys for round-robin +
 # automatic fallback when one hits its rate limit.
@@ -240,30 +263,28 @@ def group_albums(messages):
 
 async def post_group(client: TelegramClient, group: list, final_text: str) -> None:
     """Post a message or album to TARGET_CHANNEL, retrying once if
-    Telegram asks us to wait (FloodWaitError)."""
+    Telegram asks us to wait (FloodWaitError). The watermark is applied
+    here so it lands on every single post, media or text."""
     media_list = [m.media for m in group if m.media]
+    is_caption = bool(media_list)
+    text_to_send = add_watermark(final_text or "", is_caption=is_caption)
 
-    try:
+    async def _send():
         if media_list:
             await client.send_file(
                 TARGET_CHANNEL,
                 file=media_list if len(media_list) > 1 else media_list[0],
-                caption=final_text or "",
+                caption=text_to_send,
             )
-        elif final_text.strip():
-            await client.send_message(TARGET_CHANNEL, final_text)
+        elif text_to_send.strip():
+            await client.send_message(TARGET_CHANNEL, text_to_send)
+
+    try:
+        await _send()
     except FloodWaitError as e:
         print(f"[INFO] FloodWait: sleeping {e.seconds}s as Telegram requested")
         await asyncio.sleep(e.seconds + 1)
-        # one retry after waiting
-        if media_list:
-            await client.send_file(
-                TARGET_CHANNEL,
-                file=media_list if len(media_list) > 1 else media_list[0],
-                caption=final_text or "",
-            )
-        elif final_text.strip():
-            await client.send_message(TARGET_CHANNEL, final_text)
+        await _send()
 
 
 async def main() -> None:
