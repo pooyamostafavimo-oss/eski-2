@@ -1,0 +1,45 @@
+name: News Curator Bot
+
+on:
+  schedule:
+    # Every hour (fits the requested 1-2 hour cadence)
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+# Prevent overlapping runs from racing on last_ids.json
+concurrency:
+  group: news-curator-bot
+  cancel-in-progress: false
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run curator bot
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION_STRING: ${{ secrets.TG_SESSION_STRING }}
+          TARGET_CHANNEL: ${{ secrets.TARGET_CHANNEL }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          SOURCE_CHANNELS: ${{ secrets.SOURCE_CHANNELS }}
+        run: python curator_bot.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name "news-curator-bot"
+          git config user.email "actions@github.com"
+          git add last_ids.json
+          git diff --staged --quiet || git commit -m "Update last_ids.json [skip ci]"
+          git push
