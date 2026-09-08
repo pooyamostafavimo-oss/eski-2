@@ -11,6 +11,9 @@ concurrency:
   group: news-curator-bot
   cancel-in-progress: false
 
+permissions:
+  contents: write  # needed so the "Commit updated state" step can push
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
