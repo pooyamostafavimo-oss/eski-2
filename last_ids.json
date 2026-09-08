@@ -1,1 +1,54 @@
-{}
+{
+  "_channel_fail_counts": {
+    "Newz021": 0,
+    "withyashar": 0,
+    "pm_afshaa": 0,
+    "IranianMinds": 0,
+    "hutt_news": 0,
+    "BadCandom": 0,
+    "FUTBALLI18": 0,
+    "drtel": 0,
+    "nikotiinn_text": 0,
+    "nabe_saman": 0,
+    "Tala_Dollar_ir": 0,
+    "SoccerrWorld": 0
+  },
+  "_stats": {
+    "since": 1788876022.1705258,
+    "by_category": {
+      "strange": 1
+    },
+    "by_channel": {
+      "Newz021": 1
+    }
+  },
+  "Newz021": 64206,
+  "_posted_hashes": [
+    "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b"
+  ],
+  "_posted_topics": [
+    [
+      "earth",
+      "explosion",
+      "poop",
+      "life",
+      "started"
+    ]
+  ],
+  "_dead_gemini_key_ids": [
+    "26d4f95a012788ea7729ad0300e06793867e2fdb7b2931ee152058f845509bf8",
+    "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
+  ],
+  "_alerted_dead_channels": [],
+  "withyashar": 22552,
+  "pm_afshaa": 100361,
+  "IranianMinds": 28734,
+  "hutt_news": 5446,
+  "BadCandom": 49506,
+  "FUTBALLI18": 92664,
+  "drtel": 66112,
+  "nikotiinn_text": 15820,
+  "nabe_saman": 26782,
+  "Tala_Dollar_ir": 2953,
+  "SoccerrWorld": 7118
+}
