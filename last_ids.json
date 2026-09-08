@@ -16,15 +16,23 @@
   "_stats": {
     "since": 1788876022.1705258,
     "by_category": {
-      "strange": 1
+      "strange": 2,
+      "random": 1,
+      "important": 3
     },
     "by_channel": {
-      "Newz021": 1
+      "Newz021": 5,
+      "withyashar": 1
     }
   },
-  "Newz021": 64206,
+  "Newz021": 64223,
   "_posted_hashes": [
-    "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b"
+    "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b",
+    "f1de20ee00951e7c32f932d2f7693f4ea47cefb0498f6eef5b39fae1aed6cf8b",
+    "865f554d8cb04bef68b2e83d8e82bf557854278171af6cef206384a42a33907d",
+    "8a229401d2e4928e63ed75fc16f817d07b1b02d66c8b0fb0ac58c4651f083ebd",
+    "67b0944f66b81995211d0ddb7c46d0722e612353a6ce8258edf3b7592311fe2d",
+    "36ba24a99c2653fda0a3c0f7a1ba8cae92f6ecc1096baf89a866ed1d09f5727f"
   ],
   "_posted_topics": [
     [
@@ -33,6 +41,39 @@
       "poop",
       "life",
       "started"
+    ],
+    [
+      "statement",
+      "inflation",
+      "rajabi",
+      "mehran"
+    ],
+    [
+      "student",
+      "rage",
+      "road",
+      "killing",
+      "driving",
+      "karaj"
+    ],
+    [
+      "messi",
+      "ballon",
+      "nominated"
+    ],
+    [
+      "announced",
+      "ballon",
+      "30",
+      "nominees"
+    ],
+    [
+      "support",
+      "call",
+      "families",
+      "reza",
+      "pahlavi",
+      "bereaved"
     ]
   ],
   "_dead_gemini_key_ids": [
@@ -40,15 +81,15 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 22552,
-  "pm_afshaa": 100361,
-  "IranianMinds": 28734,
-  "hutt_news": 5446,
-  "BadCandom": 49506,
-  "FUTBALLI18": 92664,
-  "drtel": 66112,
-  "nikotiinn_text": 15820,
-  "nabe_saman": 26782,
-  "Tala_Dollar_ir": 2953,
-  "SoccerrWorld": 7118
+  "withyashar": 22565,
+  "pm_afshaa": 100374,
+  "IranianMinds": 28744,
+  "hutt_news": 5449,
+  "BadCandom": 49511,
+  "FUTBALLI18": 92704,
+  "drtel": 66119,
+  "nikotiinn_text": 15823,
+  "nabe_saman": 26783,
+  "Tala_Dollar_ir": 2960,
+  "SoccerrWorld": 7135
 }
