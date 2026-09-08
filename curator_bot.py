@@ -47,7 +47,10 @@ Extra features:
   every single message.
 - Topic-level duplicate detection: besides exact-text dedup, Gemini also
   returns a short topic slug, so the same real-world story reported with
-  different wording by two source channels is only posted once.
+  different wording by two source channels is only posted once. This
+  match is fuzzy (shared-keyword based), not exact-string, so slightly
+  different phrasing of the same topic (including between separate runs)
+  still counts as a duplicate.
 - Per-channel failure tracking with a one-time Telegram alert (to
   ADMIN_CHAT_ID, or your own Saved Messages by default) if a source
   channel fails to read several runs in a row — a likely sign it was
@@ -373,6 +376,38 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+# Common short filler words to ignore when comparing topic slugs, so word
+# order / a stray "the"/"در"/"با" doesn't break duplicate detection.
+_TOPIC_STOPWORDS = {
+    "the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or",
+    "با", "در", "به", "از", "و", "را", "که", "این", "یک", "برای",
+}
+
+
+def _topic_tokens(topic_key: str) -> frozenset:
+    words = re.findall(r"[\w\u0600-\u06FF]+", topic_key.lower())
+    return frozenset(w for w in words if w not in _TOPIC_STOPWORDS and len(w) > 1)
+
+
+def topic_already_posted(topic_key: str, posted_topic_token_sets: list) -> bool:
+    """Fuzzy match: True if a previously-posted topic shares most of its
+    significant words with this one, even if Gemini phrased the slug
+    slightly differently between calls/runs (word order, synonyms, one
+    extra/missing word)."""
+    tokens = _topic_tokens(topic_key)
+    if len(tokens) < 2:
+        return False  # too thin a topic to compare reliably
+    for prev in posted_topic_token_sets:
+        prev_set = frozenset(prev)
+        overlap = tokens & prev_set
+        if len(overlap) < 2:
+            continue
+        smaller = min(len(tokens), len(prev_set))
+        if len(overlap) / smaller >= 0.6:
+            return True
+    return False
+
+
 def _mask_key(key: str) -> str:
     """Never print a full API key in logs."""
     return f"...{key[-4:]}" if len(key) > 4 else "****"
@@ -577,8 +612,7 @@ async def _run() -> None:
     state = load_state()
     posted_hashes = state.get("_posted_hashes", [])
     posted_hashes_set = set(posted_hashes)
-    posted_topic_hashes = state.get("_posted_topic_hashes", [])
-    posted_topic_hashes_set = set(posted_topic_hashes)
+    posted_topics = state.get("_posted_topics", [])  # list of lists of tokens
     channel_fail_counts = state.setdefault("_channel_fail_counts", {})
     alerted_channels = set(state.get("_alerted_dead_channels", []))
     dead_keys = set(state.get("_dead_gemini_keys", []))
@@ -657,17 +691,19 @@ async def _run() -> None:
                 continue
 
             # Topic-level duplicate check: catches the same real-world
-            # story reported with different wording across channels,
-            # which an exact-text hash would miss.
+            # story reported with different wording across channels (or
+            # across runs, if Gemini phrases the topic slug slightly
+            # differently each time) — a plain exact-text hash would miss
+            # this.
             topic_key = (result.get("topic_key") or "").strip()
-            if topic_key and len(topic_key) > 3:
-                th = content_hash(topic_key)
-                if th in posted_topic_hashes_set:
+            if topic_key:
+                if topic_already_posted(topic_key, posted_topics):
                     print(f"[SKIP] Same underlying story already posted "
                           f"(topic match) from {channel}")
                     continue
-                posted_topic_hashes_set.add(th)
-                posted_topic_hashes.append(th)
+                tokens = list(_topic_tokens(topic_key))
+                if len(tokens) >= 2:
+                    posted_topics.append(tokens)
 
             # Exact-text duplicate check (skip very short/empty text, not
             # useful for dedup and would collide too easily).
@@ -700,10 +736,10 @@ async def _run() -> None:
         # doesn't lose all progress from channels already finished.
         if len(posted_hashes) > MAX_DEDUP_HASHES:
             posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
-        if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
-            posted_topic_hashes = posted_topic_hashes[-MAX_DEDUP_HASHES:]
+        if len(posted_topics) > MAX_DEDUP_HASHES:
+            posted_topics = posted_topics[-MAX_DEDUP_HASHES:]
         state["_posted_hashes"] = posted_hashes
-        state["_posted_topic_hashes"] = posted_topic_hashes
+        state["_posted_topics"] = posted_topics
         state["_dead_gemini_keys"] = sorted(dead_keys)
         state["_channel_fail_counts"] = channel_fail_counts
         state["_alerted_dead_channels"] = sorted(alerted_channels)
