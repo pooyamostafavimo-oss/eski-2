@@ -1,0 +1,47 @@
+name: Urgent Quick-Scan
+
+on:
+  # Lets an outside service (e.g. cron-job.org) trigger this run precisely
+  # on time via the GitHub API, instead of relying on GitHub's own cron
+  # (which can lag by many minutes during busy periods).
+  workflow_dispatch:
+
+  # Fallback safety net: also runs on GitHub's own schedule every 15
+  # minutes, in case the external cron service is ever down. Harmless to
+  # keep — worst case you get an extra, slightly-late check.
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  quick-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run urgent quick-scan
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION_STRING: ${{ secrets.TG_SESSION_STRING }}
+          TARGET_CHANNEL: ${{ secrets.TARGET_CHANNEL }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          SOURCE_CHANNELS: ${{ secrets.SOURCE_CHANNELS }}
+        run: python urgent_scan.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_ids.json
+          git diff --staged --quiet || git commit -m "Update state after urgent quick-scan"
+          git push
