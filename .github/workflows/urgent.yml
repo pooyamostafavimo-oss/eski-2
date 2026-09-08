@@ -12,6 +12,13 @@ on:
   schedule:
     - cron: "*/15 * * * *"
 
+# Same group as curator.yml on purpose: both workflows read/write and
+# git-commit the same last_ids.json, so they must never run concurrently
+# (an overlapping run causes a rejected/lost push and dropped state).
+concurrency:
+  group: news-curator-bot
+  cancel-in-progress: false
+
 jobs:
   quick-scan:
     runs-on: ubuntu-latest
