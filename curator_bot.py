@@ -92,7 +92,7 @@ if not GEMINI_API_KEYS:
     print("[ERROR] No Gemini API key configured (GEMINI_API_KEYS or GEMINI_API_KEY).")
     sys.exit(1)
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 
 # Delay between Gemini calls, to stay under free-tier requests-per-minute caps.
 GEMINI_CALL_DELAY_SECONDS = float(os.environ.get("GEMINI_CALL_DELAY_SECONDS", "4"))
