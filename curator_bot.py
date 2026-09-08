@@ -39,6 +39,25 @@ Extra features:
   t.me links, and "forwarded from"/"منبع:" style attributions are
   stripped from the final text as a safety net, so posts don't look
   like an obvious copy-paste from another channel.
+- Retry-with-backoff on transient network/5xx errors before rotating to
+  a different Gemini key (a temporary blip isn't treated like a bad key).
+- A quick "preflight" ping to every key at the start of the run, so a
+  dead key is caught in one request instead of being rediscovered on
+  every single message.
+- Topic-level duplicate detection: besides exact-text dedup, Gemini also
+  returns a short topic slug, so the same real-world story reported with
+  different wording by two source channels is only posted once.
+- Per-channel failure tracking with a one-time Telegram alert (to
+  ADMIN_CHAT_ID, or your own Saved Messages by default) if a source
+  channel fails to read several runs in a row — a likely sign it was
+  banned/deleted and should be removed from SOURCE_CHANNELS.
+- A global run timeout (RUN_TIMEOUT_SECONDS) so a slow run can't still
+  be going when the next scheduled run starts.
+- State is checkpointed to last_ids.json after every source channel
+  (not just at the very end), so a crash/timeout partway through doesn't
+  lose progress already made.
+- An optional periodic (default weekly) summary of posts-by-category and
+  posts-by-channel, sent to ADMIN_CHAT_ID.
 
 Designed to run on a schedule (GitHub Actions cron, every 1-2 hours).
 State (last seen message id per source channel, plus recently-posted
@@ -53,6 +72,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -139,6 +159,28 @@ MAX_MESSAGES_PER_CHANNEL = int(os.environ.get("MAX_MESSAGES_PER_CHANNEL", "30"))
 # How many recent content hashes to remember for duplicate detection
 MAX_DEDUP_HASHES = int(os.environ.get("MAX_DEDUP_HASHES", "500"))
 
+# Safety cap on total run time so a slow run can't still be going when the
+# next scheduled run starts (cron is hourly by default). Leaves headroom
+# before the ~1h cron interval.
+RUN_TIMEOUT_SECONDS = float(os.environ.get("RUN_TIMEOUT_SECONDS", "").strip() or "3300")
+
+# How many consecutive failed reads before we loudly flag a source channel
+# as possibly dead/banned/removed (instead of just quietly skipping it
+# every run forever).
+CHANNEL_FAIL_ALERT_THRESHOLD = int(os.environ.get("CHANNEL_FAIL_ALERT_THRESHOLD", "").strip() or "3")
+
+# Where to send operational alerts (all-keys-dead, a source channel
+# repeatedly failing, etc.) and the periodic stats summary. Optional -
+# defaults to "me" (your own Telegram "Saved Messages"), since posting
+# alerts to your own audience in TARGET_CHANNEL isn't appropriate.
+ADMIN_CHAT = os.environ.get("ADMIN_CHAT_ID", "").strip() or "me"
+
+# How often (in seconds) to send a "posts by category/channel" summary to
+# ADMIN_CHAT. Default 7 days. Set to 0 to disable.
+STATS_INTERVAL_SECONDS = float(
+    os.environ.get("STATS_INTERVAL_SECONDS", "").strip() or str(7 * 24 * 3600)
+)
+
 STATE_FILE = Path(__file__).parent / "last_ids.json"
 
 CLASSIFY_PROMPT = """You are a strict content curator for a Telegram news
@@ -195,9 +237,16 @@ If the input text is empty (e.g. a photo/video with no caption), it's
 still fine to mark it relevant if you have no reason to think otherwise
 — just return an empty "text".
 
+Also return "topic_key": a short (3-8 word) lowercase slug capturing the
+core real-world event/topic (who + what happened), ignoring phrasing
+differences — used only internally to detect when two different source
+channels are reporting the same underlying story. Two messages about the
+same event should get the same or a very similar topic_key even if
+worded completely differently. Leave it empty if not relevant.
+
 Respond with ONLY valid JSON, no markdown fences, no extra text, in this
 exact shape:
-{"relevant": true/false, "category": "war"|"funny"|"random"|"important"|"strange"|"none", "action": "copy"|"rewrite", "text": "final ready-to-post caption, or empty string"}
+{"relevant": true/false, "category": "war"|"funny"|"random"|"important"|"strange"|"none", "action": "copy"|"rewrite", "text": "final ready-to-post caption, or empty string", "topic_key": "short topic slug, or empty string"}
 
 Message:
 ---
@@ -219,6 +268,54 @@ def save_state(state: dict) -> None:
     STATE_FILE.write_text(
         json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+
+async def send_admin_alert(client: TelegramClient, text: str) -> None:
+    """Best-effort notification to ADMIN_CHAT (defaults to your own Saved
+    Messages) so problems don't sit unnoticed in GitHub Actions logs.
+    Never raises - an alert failing shouldn't crash the actual bot run."""
+    try:
+        await client.send_message(ADMIN_CHAT, f"🛠 [News Curator Bot]\n{text}")
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Couldn't send admin alert: {e}")
+
+
+def maybe_build_stats_summary(state: dict) -> str | None:
+    """Returns a summary string (and resets the counters in `state`) if
+    STATS_INTERVAL_SECONDS has elapsed since the last summary, else None."""
+    if STATS_INTERVAL_SECONDS <= 0:
+        return None
+    stats = state.get("_stats", {})
+    since = stats.get("since", time.time())
+    if time.time() - since < STATS_INTERVAL_SECONDS:
+        return None
+
+    by_category = stats.get("by_category", {})
+    by_channel = stats.get("by_channel", {})
+    total = sum(by_category.values())
+    days = round((time.time() - since) / 86400, 1)
+
+    lines = [f"📊 خلاصه‌ی {days} روز اخیر — {total} پست منتشر شد:"]
+    if by_category:
+        lines.append("بر اساس دسته:")
+        for cat, count in sorted(by_category.items(), key=lambda x: -x[1]):
+            lines.append(f"  • {cat}: {count}")
+    if by_channel:
+        lines.append("بر اساس منبع:")
+        for ch, count in sorted(by_channel.items(), key=lambda x: -x[1]):
+            lines.append(f"  • {ch}: {count}")
+
+    # Reset counters for the next period.
+    state["_stats"] = {"since": time.time(), "by_category": {}, "by_channel": {}}
+    return "\n".join(lines)
+
+
+def record_post_stat(state: dict, category: str, channel: str) -> None:
+    stats = state.setdefault("_stats", {"since": time.time(), "by_category": {}, "by_channel": {}})
+    stats.setdefault("by_category", {})
+    stats.setdefault("by_channel", {})
+    stats["by_category"][category] = stats["by_category"].get(category, 0) + 1
+    stats["by_channel"][channel] = stats["by_channel"].get(channel, 0) + 1
 
 
 # Lines that are made up ONLY of a source-channel signature (a bare
@@ -297,10 +394,27 @@ def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
             f"https://generativelanguage.googleapis.com/v1beta/models/"
             f"{GEMINI_MODEL}:generateContent?key={key}"
         )
-        try:
-            resp = requests.post(url, json=payload, timeout=60)
-        except requests.RequestException as e:
-            print(f"[WARN] Gemini request error on key {_mask_key(key)}: {e}")
+
+        # A transient network error or a 5xx from Google doesn't mean the
+        # key is bad — retry the SAME key a couple of times with a short
+        # backoff before giving up on it and moving to the next one.
+        resp = None
+        for retry in range(3):
+            try:
+                resp = requests.post(url, json=payload, timeout=60)
+            except requests.RequestException as e:
+                print(f"[WARN] Gemini request error on key {_mask_key(key)} "
+                      f"(retry {retry + 1}/3): {e}")
+                resp = None
+            else:
+                if resp.status_code < 500:
+                    break  # not a transient server error, stop retrying
+                print(f"[WARN] Gemini server error {resp.status_code} on key "
+                      f"{_mask_key(key)} (retry {retry + 1}/3)")
+            if retry < 2:
+                time.sleep(2 * (retry + 1))
+
+        if resp is None:
             continue
 
         if resp.status_code == 429:
@@ -357,6 +471,41 @@ def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
     return {"relevant": False, "category": "none", "action": "copy", "text": ""}
 
 
+def preflight_check_keys(dead_keys: set) -> None:
+    """Quick, cheap ping to each not-yet-dead key before the main loop, so
+    an invalid/expired key is caught in ~1 request instead of being
+    re-discovered on every message until it happens to be picked."""
+    test_payload = {
+        "contents": [{"parts": [{"text": "Reply with just the word OK."}]}],
+        "generationConfig": {"temperature": 0, "maxOutputTokens": 5},
+    }
+    for key in list(GEMINI_API_KEYS):
+        if key in dead_keys:
+            continue
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{GEMINI_MODEL}:generateContent?key={key}"
+        )
+        try:
+            resp = requests.post(url, json=test_payload, timeout=30)
+        except requests.RequestException as e:
+            print(f"[WARN] Preflight check couldn't reach Gemini for key "
+                  f"{_mask_key(key)}: {e} (will still try it normally later)")
+            continue
+
+        if resp.status_code in (400, 401, 403):
+            try:
+                err = resp.json().get("error", {})
+                err_status, err_msg = err.get("status", ""), err.get("message", "")
+            except ValueError:
+                err_status, err_msg = "", resp.text[:200]
+            if (err_status in ("PERMISSION_DENIED", "UNAUTHENTICATED")
+                    or "api key" in err_msg.lower()):
+                print(f"[WARN] Preflight: Gemini key {_mask_key(key)} is "
+                      f"invalid/expired; disabling it before the run starts.")
+                dead_keys.add(key)
+
+
 def group_albums(messages):
     """Group consecutive messages that share the same grouped_id (Telegram
     albums) into single lists, so they're posted together as one album
@@ -407,7 +556,7 @@ async def post_group(client: TelegramClient, group: list, final_text: str) -> No
         await _send()
 
 
-async def main() -> None:
+async def _run() -> None:
     if not SOURCE_CHANNELS:
         print("[ERROR] No SOURCE_CHANNELS configured. Set the env var (comma-separated).")
         sys.exit(1)
@@ -415,16 +564,24 @@ async def main() -> None:
     state = load_state()
     posted_hashes = state.get("_posted_hashes", [])
     posted_hashes_set = set(posted_hashes)
+    posted_topic_hashes = state.get("_posted_topic_hashes", [])
+    posted_topic_hashes_set = set(posted_topic_hashes)
+    channel_fail_counts = state.setdefault("_channel_fail_counts", {})
+    alerted_channels = set(state.get("_alerted_dead_channels", []))
 
     dead_keys = set(state.get("_dead_gemini_keys", []))
     if dead_keys:
         print(f"[INFO] Skipping {len(dead_keys)} previously-disabled Gemini key(s).")
-    if len(dead_keys) >= len(GEMINI_API_KEYS):
-        print("[ERROR] All configured Gemini keys were previously marked "
-              "invalid/expired. Add a working key to GEMINI_API_KEYS.")
 
     client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
     await client.start()
+
+    preflight_check_keys(dead_keys)
+    if len(dead_keys) >= len(GEMINI_API_KEYS):
+        msg = ("همه‌ی کلیدهای Gemini نامعتبر/منقضی شدن؛ یه کلید جدید به "
+               "GEMINI_API_KEYS اضافه کن.")
+        print(f"[ERROR] {msg}")
+        await send_admin_alert(client, msg)
 
     for channel in SOURCE_CHANNELS:
         last_id = state.get(channel, 0)
@@ -438,11 +595,24 @@ async def main() -> None:
                 if msg.text or msg.media:
                     raw_messages.append(msg)
                 newest_seen = max(newest_seen, msg.id)
+            channel_fail_counts[channel] = 0
         except FloodWaitError as e:
             print(f"[INFO] FloodWait while reading {channel}: sleeping {e.seconds}s")
             await asyncio.sleep(e.seconds + 1)
         except Exception as e:  # noqa: BLE001
             print(f"[WARN] Failed to read {channel}: {e}")
+            channel_fail_counts[channel] = channel_fail_counts.get(channel, 0) + 1
+            if (channel_fail_counts[channel] >= CHANNEL_FAIL_ALERT_THRESHOLD
+                    and channel not in alerted_channels):
+                alert = (f"چنل «{channel}» {channel_fail_counts[channel]} بار "
+                         f"پیاپی fail شده (احتمالاً حذف/بن شده یا دیگه در "
+                         f"دسترس نیست). شاید بخوای از SOURCE_CHANNELS حذفش کنی.")
+                print(f"[WARN] {alert}")
+                await send_admin_alert(client, alert)
+                alerted_channels.add(channel)
+            state["_channel_fail_counts"] = channel_fail_counts
+            state["_alerted_dead_channels"] = sorted(alerted_channels)
+            save_state(state)
             continue
 
         # iter_messages returns newest-first; reverse to chronological
@@ -474,7 +644,20 @@ async def main() -> None:
                 print(f"[SKIP] Nothing left to post from {channel} after cleanup")
                 continue
 
-            # Duplicate-content check (skip very short/empty text, not
+            # Topic-level duplicate check: catches the same real-world
+            # story reported with different wording across channels,
+            # which an exact-text hash would miss.
+            topic_key = (result.get("topic_key") or "").strip()
+            if topic_key and len(topic_key) > 3:
+                th = content_hash(topic_key)
+                if th in posted_topic_hashes_set:
+                    print(f"[SKIP] Same underlying story already posted "
+                          f"(topic match) from {channel}")
+                    continue
+                posted_topic_hashes_set.add(th)
+                posted_topic_hashes.append(th)
+
+            # Exact-text duplicate check (skip very short/empty text, not
             # useful for dedup and would collide too easily).
             if final_text and len(final_text.strip()) > 15:
                 h = content_hash(final_text)
@@ -490,19 +673,41 @@ async def main() -> None:
                 print(f"[WARN] Failed to post a message from {channel}: {e}")
                 continue
 
+            record_post_stat(state, result.get("category", "unknown"), channel)
             print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
                   f"from {channel}")
 
         state[channel] = newest_seen
 
-    # Cap the dedup history so the state file doesn't grow forever.
-    if len(posted_hashes) > MAX_DEDUP_HASHES:
-        posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
-    state["_posted_hashes"] = posted_hashes
-    state["_dead_gemini_keys"] = sorted(dead_keys)
+        # Checkpoint after each channel so a timeout/crash partway through
+        # doesn't lose all progress from channels already finished.
+        if len(posted_hashes) > MAX_DEDUP_HASHES:
+            posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
+        if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
+            posted_topic_hashes = posted_topic_hashes[-MAX_DEDUP_HASHES:]
+        state["_posted_hashes"] = posted_hashes
+        state["_posted_topic_hashes"] = posted_topic_hashes
+        state["_dead_gemini_keys"] = sorted(dead_keys)
+        state["_channel_fail_counts"] = channel_fail_counts
+        state["_alerted_dead_channels"] = sorted(alerted_channels)
+        save_state(state)
+
+    summary = maybe_build_stats_summary(state)
+    if summary:
+        await send_admin_alert(client, summary)
 
     await client.disconnect()
     save_state(state)
+
+
+async def main() -> None:
+    try:
+        await asyncio.wait_for(_run(), timeout=RUN_TIMEOUT_SECONDS)
+    except asyncio.TimeoutError:
+        print(f"[ERROR] Run exceeded the {RUN_TIMEOUT_SECONDS:.0f}s safety "
+              f"timeout and was stopped early so it won't overlap the next "
+              f"scheduled run. Progress up to the last completed channel "
+              f"was already saved.")
 
 
 if __name__ == "__main__":
