@@ -19,17 +19,20 @@ Extra features:
 - Multiple Gemini API keys with round-robin + automatic fallback when
   one key hits its rate limit (429). If a key turns out to be
   invalid/expired/revoked (not just rate-limited), it is permanently
-  disabled and remembered in last_ids.json by a one-way SHA-256 key ID
-  so future runs don't waste time retrying it without storing the secret.
+  disabled and remembered in last_ids.json so future runs don't waste
+  time retrying it.
 - A small delay between Gemini calls to stay under free-tier RPM caps.
-- Duplicate-content detection: if the same story/caption shows up in
-  more than one source channel, it's only posted once.
+- Event-level duplicate detection (see below) — the same real-world
+  story reported with completely different wording by different source
+  channels is only posted once, while genuinely different stories about
+  the same broad topic (same country, same company, same person) are
+  NOT wrongly treated as duplicates.
 - Telegram albums (multi-photo/video posts) are kept together as a
   single post instead of being split into separate messages.
 - Telegram FloodWait errors are handled by waiting it out instead of
   crashing the run.
-- A watermark/signature (e.g. your channel username) is appended to the
-  end of every post, text or media caption.
+- A watermark/signature (e.g. your channel link) is appended to the end
+  of every post, text or media caption.
 - Strict relevance filtering: casual personal chit-chat, jokes between
   friends, ads/self-promotion, and other non-news content are rejected
   instead of being posted.
@@ -45,12 +48,6 @@ Extra features:
 - A quick "preflight" ping to every key at the start of the run, so a
   dead key is caught in one request instead of being rediscovered on
   every single message.
-- Topic-level duplicate detection: besides exact-text dedup, Gemini also
-  returns a short topic slug, so the same real-world story reported with
-  different wording by two source channels is only posted once. This
-  match is fuzzy (shared-keyword based), not exact-string, so slightly
-  different phrasing of the same topic (including between separate runs)
-  still counts as a duplicate.
 - Per-channel failure tracking with a one-time Telegram alert (to
   ADMIN_CHAT_ID, or your own Saved Messages by default) if a source
   channel fails to read several runs in a row — a likely sign it was
@@ -62,27 +59,62 @@ Extra features:
   lose progress already made.
 - An optional periodic (default weekly) summary of posts-by-category and
   posts-by-channel, sent to ADMIN_CHAT_ID.
-- A randomized pause after each approved post (POST_GAP_MIN/MAX_SECONDS)
-  so several messages approved in the same run don't all get published
-  back-to-back — they get spread out, roughly across the run instead of
-  landing all at once.
+
+Duplicate detection — how it actually works
+--------------------------------------------
+Two layers, cheapest first:
+
+1. Exact-text hash (fast path, free): if the *final* posted text is
+   byte-for-byte identical (after whitespace/case normalization) to
+   something already posted, it's skipped immediately. Catches literal
+   re-posts / re-forwards of the same source message.
+
+2. Event-fingerprint matching (semantic, for everything else): plain
+   "this is about the same broad topic" is NOT enough to call two
+   messages duplicates — e.g. "Trump met Netanyahu" and "Trump commented
+   on the Gaza war" share subject/country but are different events, and
+   must both be posted. Conversely "Bitcoin hit $100K" and "BTC crossed
+   the 100,000 dollar mark" are worded completely differently but ARE
+   the same event.
+
+   So instead of a single topic slug, Gemini extracts a structured
+   event fingerprint for every relevant message (event_type, subject,
+   action, object, location, time, numbers, event_status). That
+   fingerprint is turned into a short canonical sentence and embedded
+   (Gemini embeddings). For a new message, we only compare against
+   *recent* stored events (an event more than EVENT_DEDUP_WINDOW_SECONDS
+   old is not a candidate — a new earthquake report days after an old
+   one is a new event, not a dup) whose embedding is close enough
+   (cosine similarity >= EVENT_SIMILARITY_THRESHOLD) to be worth
+   checking at all — this is just a cheap pre-filter, not the final
+   answer.
+
+   Only for those few candidates do we spend an actual Gemini call
+   asking it to judge, with explicit few-shot examples, whether the two
+   messages describe the *same real-world event* — not just a similar
+   topic. Only a "yes" from that judge call marks the new message as a
+   duplicate. This keeps the expensive step rare (most messages have no
+   close candidate at all) while avoiding both failure modes: dumb
+   exact-text hashing (misses reworded dupes) and dumb topic-only
+   matching (wrongly merges distinct events that share a topic).
 
 Designed to run on a schedule (GitHub Actions cron, every 1-2 hours).
-State (last seen message id per source channel, plus recently-posted
-content hashes for dedup) is kept in last_ids.json, which the workflow
-commits back to the repo after each run so the next run knows where to
-continue from.
+State (last seen message id per source channel, exact-text hashes, and
+recent event fingerprints/embeddings for dedup) is kept in
+last_ids.json, which the workflow commits back to the repo after each
+run so the next run knows where to continue from.
 """
 
 import asyncio
 import hashlib
 import json
+import math
 import os
-import random
 import re
 import sys
 import time
 from pathlib import Path
+from typing import Callable, Optional
 
 import requests
 from telethon import TelegramClient
@@ -101,8 +133,8 @@ SESSION_STRING = os.environ["TG_SESSION_STRING"]
 TARGET_CHANNEL = os.environ["TARGET_CHANNEL"]  # e.g. "@my_channel"
 
 # Watermark/signature appended to the end of every post (e.g. your
-# channel's own username). Leave WATERMARK_TEXT empty to disable.
-WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "@KosSherijat_69"
+# channel's own link). Leave WATERMARK_TEXT empty to disable.
+WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "https://t.me/KosSherijat_69"
 
 # Telegram limits: 4096 chars for a plain text message, 1024 for a
 # media caption. We trim the generated text so the watermark always fits.
@@ -137,6 +169,8 @@ if not GEMINI_API_KEYS:
     sys.exit(1)
 
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+# Cheap embedding model used only for the event-dedup candidate pre-filter.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-004")
 
 # Delay between Gemini calls, to stay under free-tier requests-per-minute caps.
 GEMINI_CALL_DELAY_SECONDS = float(os.environ.get("GEMINI_CALL_DELAY_SECONDS", "4"))
@@ -158,7 +192,6 @@ DEFAULT_SOURCE_CHANNELS = [
     "Tala_Dollar_ir",
     "SoccerrWorld",
 ]
-
 SOURCE_CHANNELS = [
     c.strip() for c in os.environ.get("SOURCE_CHANNELS", "").split(",") if c.strip()
 ] or DEFAULT_SOURCE_CHANNELS
@@ -166,21 +199,32 @@ SOURCE_CHANNELS = [
 # How many messages max to pull per channel per run (safety cap)
 MAX_MESSAGES_PER_CHANNEL = int(os.environ.get("MAX_MESSAGES_PER_CHANNEL", "30"))
 
-# How many recent content hashes to remember for duplicate detection
+# How many recent exact-text content hashes to remember for the fast-path
+# duplicate check.
 MAX_DEDUP_HASHES = int(os.environ.get("MAX_DEDUP_HASHES", "500"))
+
+# --- Event-fingerprint dedup tuning -----------------------------------
+# Only events posted within this many seconds are ever considered as
+# duplicate candidates for a new message. A "similar" story outside this
+# window is treated as a new, unrelated event (e.g. a fresh earthquake
+# report days after an old one).
+EVENT_DEDUP_WINDOW_SECONDS = float(
+    os.environ.get("EVENT_DEDUP_WINDOW_SECONDS", "").strip() or str(3 * 24 * 3600)
+)
+# Cosine-similarity cutoff for an event to even be considered a candidate
+# worth spending a Gemini "same event?" judge call on. This is a cheap
+# pre-filter, not the final duplicate decision.
+EVENT_SIMILARITY_THRESHOLD = float(os.environ.get("EVENT_SIMILARITY_THRESHOLD", "0.80"))
+# At most this many closest candidates get an actual judge call.
+EVENT_CANDIDATE_TOP_K = int(os.environ.get("EVENT_CANDIDATE_TOP_K", "3"))
+# How many recent events to keep in state for comparison (independent of
+# the time window, as a hard cap on state file size).
+MAX_STORED_EVENTS = int(os.environ.get("MAX_STORED_EVENTS", "400"))
 
 # Safety cap on total run time so a slow run can't still be going when the
 # next scheduled run starts (cron is hourly by default). Leaves headroom
 # before the ~1h cron interval.
 RUN_TIMEOUT_SECONDS = float(os.environ.get("RUN_TIMEOUT_SECONDS", "").strip() or "3300")
-
-# Random pause (seconds) after each approved post, before moving on to the
-# next one. This spreads posts out instead of firing them all back-to-back
-# the moment they're approved. Tune these so the total expected pause time
-# for a typical run's worth of posts stays comfortably under
-# RUN_TIMEOUT_SECONDS / your cron interval.
-POST_GAP_MIN_SECONDS = float(os.environ.get("POST_GAP_MIN_SECONDS", "").strip() or "120")
-POST_GAP_MAX_SECONDS = float(os.environ.get("POST_GAP_MAX_SECONDS", "").strip() or "600")
 
 # How many consecutive failed reads before we loudly flag a source channel
 # as possibly dead/banned/removed (instead of just quietly skipping it
@@ -256,21 +300,81 @@ If the input text is empty (e.g. a photo/video with no caption), it's
 still fine to mark it relevant if you have no reason to think otherwise
 — just return an empty "text".
 
-Also return "topic_key": a short (3-8 word) lowercase slug capturing the
-core real-world event/topic (who + what happened), ignoring phrasing
-differences — used only internally to detect when two different source
-channels are reporting the same underlying story. Two messages about the
-same event should get the same or a very similar topic_key even if
-worded completely differently. Leave it empty if not relevant.
+Also, if relevant, extract an "fingerprint" object describing the single
+concrete real-world event being reported (used only internally, to later
+tell apart "same event reported twice" from "different event, same
+general topic"):
+- "event_type": short category of what happened (e.g. "price_record",
+  "meeting", "military_strike", "election_result", "injury",
+  "earthquake", "statement")
+- "subject": the main actor/entity the event is about (person, company,
+  country, team, asset, etc.)
+- "action": the specific thing that happened, as a short verb phrase
+  (e.g. "crossed", "met with", "struck", "won", "resigned")
+- "object": what the action was directed at / involves, if any (e.g. the
+  other party in a meeting, the target of a strike, the threshold
+  crossed)
+- "location": place the event happened, if mentioned, else null
+- "time": date/time of the event if mentioned (any format, else null)
+- "numbers": array of key numeric values mentioned (prices, casualty
+  counts, scores, percentages, magnitudes) as strings, empty array if none
+- "event_status": one short word for the state of the event if relevant,
+  e.g. "new_record", "ongoing", "resolved", "denied", "confirmed", else null
+
+Be concrete and specific in the fingerprint — it must be possible to
+tell two DIFFERENT events about the same subject apart just from it
+(e.g. two different earthquakes, or two different meetings between the
+same two people on different days, must get different "time"/"numbers"/
+"action" values, not identical fingerprints). Leave fingerprint fields
+null/empty and use an empty object {} if not relevant.
 
 Respond with ONLY valid JSON, no markdown fences, no extra text, in this
 exact shape:
-{"relevant": true/false, "category": "war"|"funny"|"random"|"important"|"strange"|"none", "action": "copy"|"rewrite", "text": "final ready-to-post caption, or empty string", "topic_key": "short topic slug, or empty string"}
+{"relevant": true/false, "category": "war"|"funny"|"random"|"important"|"strange"|"none", "action": "copy"|"rewrite", "text": "final ready-to-post caption, or empty string", "fingerprint": {"event_type": "", "subject": "", "action": "", "object": "", "location": null, "time": null, "numbers": [], "event_status": null}}
 
 Message:
 ---
 {MESSAGE}
 ---
+"""
+
+# Few-shot judge: decides whether two messages report the SAME real-world
+# event, not just a similar topic/subject. This is deliberately the exact
+# kind of distinction a pure topic-slug or text-similarity match gets
+# wrong, so it's spelled out with contrastive examples.
+JUDGE_PROMPT = """Two news items are given below, each as (original text +
+extracted fingerprint). Decide whether they report the SAME specific
+real-world event — not merely the same general topic, subject, country,
+or person.
+
+Similarity of topic, subject, country, or wording is NOT sufficient by
+itself. Only answer "same event" if both items are clearly describing
+one and the same concrete happening (same action, same target/threshold/
+result, same approximate time if a time is given).
+
+Examples:
+- "ترامپ با نتانیاهو دیدار کرد" vs "ترامپ درباره جنگ غزه صحبت کرد"
+  -> DIFFERENT events (same person, different happening)
+- "بیت‌کوین به ۱۰۰ هزار دلار رسید" vs "BTC از مرز ۱۰۰,۰۰۰ دلار عبور کرد"
+  -> SAME event (same threshold, same asset, same milestone), even
+     though the wording is completely different
+- "زلزله ۶ ریشتری در ژاپن" vs "زلزله دیگری با قدرت ۵ ریشتر در ژاپن"
+  -> DIFFERENT events (different magnitude = different earthquake)
+- "فلان شرکت ۱۰٪ رشد کرد" vs "سهام همان شرکت ۱۰٪ افزایش یافت"
+  -> SAME event (same company, same figure, same kind of move)
+- "فلان بازیکن مصدوم شد" vs "همان بازیکن از مصدومیت برگشت"
+  -> DIFFERENT events (injury vs. recovery are opposite happenings)
+
+Item A:
+text: {TEXT_A}
+fingerprint: {FP_A}
+
+Item B:
+text: {TEXT_B}
+fingerprint: {FP_B}
+
+Respond with ONLY valid JSON, no markdown fences, no extra text:
+{"same_event": true/false}
 """
 
 # Round-robin cursor over API keys, shared across calls in this run.
@@ -299,7 +403,7 @@ async def send_admin_alert(client: TelegramClient, text: str) -> None:
         print(f"[WARN] Couldn't send admin alert: {e}")
 
 
-def maybe_build_stats_summary(state: dict) -> str | None:
+def maybe_build_stats_summary(state: dict) -> Optional[str]:
     """Returns a summary string (and resets the counters in `state`) if
     STATS_INTERVAL_SECONDS has elapsed since the last summary, else None."""
     if STATS_INTERVAL_SECONDS <= 0:
@@ -349,7 +453,6 @@ _SOURCE_TRACE_LINE_PATTERNS = [
     re.compile(r"(?im)^[\s\W]*https?://t\.me/\S+[\s\W]*$"),
     re.compile(r"(?im)^\s*(join|عضویت در کانال|کانال ما|چنل ما)\b.*$"),
 ]
-
 # A bare t.me link that shows up in the middle of an otherwise-fine line
 # is stripped inline rather than dropping the whole line.
 _INLINE_TME_LINK = re.compile(r"https?://t\.me/\S+", re.IGNORECASE)
@@ -376,85 +479,26 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-# Common short filler words to ignore when comparing topic slugs, so word
-# order / a stray "the"/"در"/"با" doesn't break duplicate detection.
-_TOPIC_STOPWORDS = {
-    "the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or",
-    "با", "در", "به", "از", "و", "را", "که", "این", "یک", "برای",
-}
-
-
-def _topic_tokens(topic_key: str) -> frozenset:
-    words = re.findall(r"[\w\u0600-\u06FF]+", topic_key.lower())
-    return frozenset(w for w in words if w not in _TOPIC_STOPWORDS and len(w) > 1)
-
-
-def topic_already_posted(topic_key: str, posted_topic_token_sets: list) -> bool:
-    """Fuzzy match: True if a previously-posted topic shares most of its
-    significant words with this one, even if Gemini phrased the slug
-    slightly differently between calls/runs (word order, synonyms, one
-    extra/missing word)."""
-    tokens = _topic_tokens(topic_key)
-    if len(tokens) < 2:
-        return False  # too thin a topic to compare reliably
-    for prev in posted_topic_token_sets:
-        prev_set = frozenset(prev)
-        overlap = tokens & prev_set
-        if len(overlap) < 2:
-            continue
-        smaller = min(len(tokens), len(prev_set))
-        if len(overlap) / smaller >= 0.6:
-            return True
-    return False
-
-
 def _mask_key(key: str) -> str:
     """Never print a full API key in logs."""
     return f"...{key[-4:]}" if len(key) > 4 else "****"
 
 
-def key_id(key: str) -> str:
-    """Return a one-way identifier for persisting a disabled API key.
-
-    The raw API key must never be written to last_ids.json or committed
-    to the repository.
-    """
-    return hashlib.sha256(key.encode("utf-8")).hexdigest()
-
-
-def classify_with_gemini(message_text: str, dead_key_ids: set) -> dict:
-    """Try each still-usable Gemini key in round-robin order.
-
-    - On 429 (rate limit) the key is just skipped for this call — it's
-      still usable later.
-    - On a 400/401/403 that indicates an invalid, revoked, or expired
-      API key, the key is added to `dead_keys` (mutated in place) and
-      never tried again, in this run or future ones (the caller persists
-      `dead_keys` to last_ids.json).
-
-    Returns a safe default (not relevant) if every usable key fails.
-    """
+def _gemini_request(url_for_key: Callable[[str], str], payload: dict, dead_keys: set) -> Optional[dict]:
+    """Shared round-robin/retry/dead-key logic for any Gemini REST call
+    (generateContent or embedContent). `url_for_key` builds the full URL
+    for a given API key. Returns the parsed JSON response body, or None
+    if every usable key failed for this call."""
     global _key_cursor
 
-    active_keys = [k for k in GEMINI_API_KEYS if key_id(k) not in dead_key_ids]
+    active_keys = [k for k in GEMINI_API_KEYS if k not in dead_keys]
     if not active_keys:
-        print("[ERROR] No usable Gemini keys left — all are disabled as "
-              "invalid/expired. Add a new key to GEMINI_API_KEYS.")
-        return {"relevant": False, "category": "none", "action": "copy", "text": ""}
-
-    prompt = CLASSIFY_PROMPT.replace("{MESSAGE}", (message_text or "")[:4000])
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.6},
-    }
+        return None
 
     n_keys = len(active_keys)
     for attempt in range(n_keys):
         key = active_keys[(_key_cursor + attempt) % n_keys]
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{GEMINI_MODEL}:generateContent?key={key}"
-        )
+        url = url_for_key(key)
 
         # A transient network error or a 5xx from Google doesn't mean the
         # key is bad — retry the SAME key a couple of times with a short
@@ -499,7 +543,7 @@ def classify_with_gemini(message_text: str, dead_key_ids: set) -> dict:
                 print(f"[WARN] Gemini key {_mask_key(key)} looks invalid/expired "
                       f"({err_status or resp.status_code}: {err_msg[:120]}); "
                       f"disabling it permanently.")
-                dead_key_ids.add(key_id(key))
+                dead_keys.add(key)
             else:
                 print(f"[WARN] Gemini call failed: {resp.status_code} {err_msg[:200]}")
             continue
@@ -511,27 +555,184 @@ def classify_with_gemini(message_text: str, dead_key_ids: set) -> dict:
         # Success — advance the cursor so the next call starts from the
         # next key (spreads load evenly across keys).
         _key_cursor = (_key_cursor + attempt + 1) % max(n_keys, 1)
+        return resp.json()
 
-        data = resp.json()
-        try:
-            raw = data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            return {"relevant": False, "category": "none", "action": "copy", "text": ""}
-
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = raw.strip("`")
-            raw = raw.replace("json\n", "", 1).replace("json", "", 1)
-        try:
-            return json.loads(raw)
-        except json.JSONDecodeError:
-            return {"relevant": False, "category": "none", "action": "copy", "text": ""}
-
-    print("[WARN] All usable Gemini keys failed/rate-limited for this message; skipping.")
-    return {"relevant": False, "category": "none", "action": "copy", "text": ""}
+    return None
 
 
-def preflight_check_keys(dead_key_ids: set) -> None:
+def _parse_json_response(raw: str) -> Optional[dict]:
+    raw = (raw or "").strip()
+    if raw.startswith("```"):
+        raw = raw.strip("`")
+        raw = raw.replace("json\n", "", 1).replace("json", "", 1)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
+    """Classify a message and, if relevant, extract its event fingerprint.
+    Returns a safe "not relevant" default if every usable key fails."""
+    if not [k for k in GEMINI_API_KEYS if k not in dead_keys]:
+        print("[ERROR] No usable Gemini keys left — all are disabled as "
+              "invalid/expired. Add a new key to GEMINI_API_KEYS.")
+        return {"relevant": False, "category": "none", "action": "copy", "text": "", "fingerprint": {}}
+
+    prompt = CLASSIFY_PROMPT.replace("{MESSAGE}", (message_text or "")[:4000])
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.6},
+    }
+    url_for_key = lambda key: (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent?key={key}"
+    )
+    data = _gemini_request(url_for_key, payload, dead_keys)
+    if data is None:
+        print("[WARN] All usable Gemini keys failed/rate-limited for this message; skipping.")
+        return {"relevant": False, "category": "none", "action": "copy", "text": "", "fingerprint": {}}
+
+    try:
+        raw = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        return {"relevant": False, "category": "none", "action": "copy", "text": "", "fingerprint": {}}
+
+    parsed = _parse_json_response(raw)
+    if parsed is None:
+        return {"relevant": False, "category": "none", "action": "copy", "text": "", "fingerprint": {}}
+    parsed.setdefault("fingerprint", {})
+    return parsed
+
+
+def embed_text(text: str, dead_keys: set) -> Optional[list]:
+    """Get an embedding vector for `text` via Gemini's embedding model.
+    Returns None if it's empty or every usable key fails — callers must
+    treat that as "skip the semantic dedup check for this message" rather
+    than crash the run."""
+    text = (text or "").strip()
+    if not text:
+        return None
+
+    payload = {"content": {"parts": [{"text": text[:2000]}]}}
+    url_for_key = lambda key: (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{EMBEDDING_MODEL}:embedContent?key={key}"
+    )
+    data = _gemini_request(url_for_key, payload, dead_keys)
+    if data is None:
+        return None
+    try:
+        return data["embedding"]["values"]
+    except (KeyError, TypeError):
+        return None
+
+
+def cosine_similarity(a: list, b: list) -> float:
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(y * y for y in b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def fingerprint_to_text(fp: dict) -> str:
+    """Turn a structured event fingerprint into one short canonical
+    sentence, used both for embedding and for showing the judge call a
+    compact summary of "what event is this"."""
+    if not fp:
+        return ""
+    parts = [
+        fp.get("subject"),
+        fp.get("action"),
+        fp.get("object"),
+        fp.get("location"),
+        fp.get("time"),
+        " ".join(fp.get("numbers") or []),
+        fp.get("event_status"),
+    ]
+    return " ".join(str(p).strip() for p in parts if p).strip()
+
+
+def judge_same_event(text_a: str, fp_a: dict, text_b: str, fp_b: dict, dead_keys: set) -> bool:
+    """Ask Gemini whether two messages report the same real-world event.
+    Defaults to False (not a duplicate) on any failure — an infra hiccup
+    here should never silently suppress a real, new story."""
+    prompt = (
+        JUDGE_PROMPT
+        .replace("{TEXT_A}", (text_a or "")[:800])
+        .replace("{FP_A}", json.dumps(fp_a or {}, ensure_ascii=False))
+        .replace("{TEXT_B}", (text_b or "")[:800])
+        .replace("{FP_B}", json.dumps(fp_b or {}, ensure_ascii=False))
+    )
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.0},
+    }
+    url_for_key = lambda key: (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent?key={key}"
+    )
+    data = _gemini_request(url_for_key, payload, dead_keys)
+    if data is None:
+        return False
+    try:
+        raw = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        return False
+    parsed = _parse_json_response(raw)
+    if not parsed:
+        return False
+    return bool(parsed.get("same_event", False))
+
+
+def prune_events(events: list, now: float) -> list:
+    """Drop events older than the dedup window, then cap to the most
+    recent MAX_STORED_EVENTS regardless of age (state-size safety net)."""
+    fresh = [e for e in events if now - e.get("ts", 0) <= EVENT_DEDUP_WINDOW_SECONDS]
+    if len(fresh) > MAX_STORED_EVENTS:
+        fresh = fresh[-MAX_STORED_EVENTS:]
+    return fresh
+
+
+def find_duplicate_event(
+    new_text: str,
+    new_fp: dict,
+    new_embedding: Optional[list],
+    events: list,
+    dead_keys: set,
+) -> Optional[dict]:
+    """Returns the matching stored event dict if `new_text`/`new_fp` is
+    judged to be the same real-world event as one already posted recently,
+    else None. Cheap embedding similarity narrows candidates; only those
+    get an actual LLM judge call."""
+    if new_embedding is None or not events:
+        return None
+
+    scored = []
+    for ev in events:
+        sim = cosine_similarity(new_embedding, ev.get("embedding") or [])
+        if sim >= EVENT_SIMILARITY_THRESHOLD:
+            scored.append((sim, ev))
+    if not scored:
+        return None
+
+    scored.sort(key=lambda pair: -pair[0])
+    for _, candidate in scored[:EVENT_CANDIDATE_TOP_K]:
+        is_dup = judge_same_event(
+            new_text, new_fp,
+            candidate.get("raw_text", ""), candidate.get("fingerprint", {}),
+            dead_keys,
+        )
+        if is_dup:
+            return candidate
+    return None
+
+
+def preflight_check_keys(dead_keys: set) -> None:
     """Quick, cheap ping to each not-yet-dead key before the main loop, so
     an invalid/expired key is caught in ~1 request instead of being
     re-discovered on every message until it happens to be picked."""
@@ -540,7 +741,7 @@ def preflight_check_keys(dead_key_ids: set) -> None:
         "generationConfig": {"temperature": 0, "maxOutputTokens": 5},
     }
     for key in list(GEMINI_API_KEYS):
-        if key_id(key) in dead_key_ids:
+        if key in dead_keys:
             continue
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
@@ -552,7 +753,6 @@ def preflight_check_keys(dead_key_ids: set) -> None:
             print(f"[WARN] Preflight check couldn't reach Gemini for key "
                   f"{_mask_key(key)}: {e} (will still try it normally later)")
             continue
-
         if resp.status_code in (400, 401, 403):
             try:
                 err = resp.json().get("error", {})
@@ -563,7 +763,7 @@ def preflight_check_keys(dead_key_ids: set) -> None:
                     or "api key" in err_msg.lower()):
                 print(f"[WARN] Preflight: Gemini key {_mask_key(key)} is "
                       f"invalid/expired; disabling it before the run starts.")
-                dead_key_ids.add(key_id(key))
+                dead_keys.add(key)
 
 
 def group_albums(messages):
@@ -613,34 +813,125 @@ async def post_group(client: TelegramClient, group: list, final_text: str) -> No
         await _send()
 
 
+async def process_message_group(
+    client: TelegramClient,
+    channel: str,
+    group: list,
+    state: dict,
+    dead_keys: set,
+    events: list,
+    posted_hashes: list,
+    posted_hashes_set: set,
+) -> Optional[dict]:
+    """Classify one message/album group, run it through both dedup layers,
+    and post it if it's relevant and new.
+
+    Mutates `events` / `posted_hashes` / `posted_hashes_set` / `state`
+    (stats) in place so callers share dedup state across a whole run.
+    Returns the classify result dict if the group was posted, else None.
+
+    This is the single source of truth for "classify + dedup + post" —
+    shared by the full hourly run (_run, below) and the urgent quick-scan
+    companion script (urgent_scan.py), so a message that gets fast-tracked
+    by the quick scan is judged with exactly the same quality/dedup logic
+    as one handled by the normal run. Only *which* messages reach this
+    function differs between the two.
+    """
+    source_text = next((m.text for m in group if m.text), "") or ""
+
+    try:
+        result = classify_with_gemini(source_text, dead_keys)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
+        return None
+    finally:
+        await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
+
+    if not result.get("relevant"):
+        return None
+
+    final_text = result.get("text") or source_text
+    final_text = strip_source_traces(final_text)
+
+    # If cleanup left no text and there's no media either, there's
+    # nothing worth posting.
+    if not final_text.strip() and not any(m.media for m in group):
+        print(f"[SKIP] Nothing left to post from {channel} after cleanup")
+        return None
+
+    # --- Layer 1: exact-text fast path (free) ---------------
+    if final_text and len(final_text.strip()) > 15:
+        h = content_hash(final_text)
+        if h in posted_hashes_set:
+            print(f"[SKIP] Exact-text duplicate from {channel}, already posted")
+            return None
+
+    # --- Layer 2: event-fingerprint semantic dedup -----------
+    fingerprint = result.get("fingerprint") or {}
+    fp_text = fingerprint_to_text(fingerprint)
+    embedding_source = fp_text or final_text
+    new_embedding = embed_text(embedding_source, dead_keys)
+    if new_embedding is None:
+        print(f"[WARN] Couldn't get embedding for a message from {channel}; "
+              f"skipping semantic dedup check for it")
+    else:
+        dup_event = find_duplicate_event(final_text, fingerprint, new_embedding, events, dead_keys)
+        if dup_event is not None:
+            print(f"[SKIP] Same underlying event already posted "
+                  f"(judged duplicate) from {channel}")
+            return None
+
+    # Not a duplicate by either layer — record it before posting so a
+    # later message in the same run can also match against it.
+    if final_text and len(final_text.strip()) > 15:
+        h = content_hash(final_text)
+        posted_hashes_set.add(h)
+        posted_hashes.append(h)
+    if new_embedding is not None:
+        events.append({
+            "id": content_hash(fp_text or final_text)[:16],
+            "fingerprint": fingerprint,
+            "raw_text": final_text[:800],
+            "embedding": new_embedding,
+            "ts": time.time(),
+        })
+
+    try:
+        await post_group(client, group, final_text)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Failed to post a message from {channel}: {e}")
+        return None
+
+    record_post_stat(state, result.get("category", "unknown"), channel)
+    print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
+          f"from {channel}")
+    return result
+
+
 async def _run() -> None:
     if not SOURCE_CHANNELS:
         print("[ERROR] No SOURCE_CHANNELS configured. Set the env var (comma-separated).")
         sys.exit(1)
 
     state = load_state()
+
     posted_hashes = state.get("_posted_hashes", [])
     posted_hashes_set = set(posted_hashes)
-    posted_topics = state.get("_posted_topics", [])  # list of lists of tokens
+
+    now = time.time()
+    events = prune_events(state.get("_events", []), now)
+
     channel_fail_counts = state.setdefault("_channel_fail_counts", {})
     alerted_channels = set(state.get("_alerted_dead_channels", []))
-    # SECURITY: Older versions stored raw Gemini API keys under
-    # "_dead_gemini_keys". Migrate them in memory to one-way IDs and remove
-    # the legacy field so the next save cleans the state file.
-    legacy_dead_keys = state.pop("_dead_gemini_keys", [])
-    dead_key_ids = set(state.get("_dead_gemini_key_ids", []))
-    for legacy_key in legacy_dead_keys:
-        if isinstance(legacy_key, str) and legacy_key:
-            dead_key_ids.add(key_id(legacy_key))
-
-    if dead_key_ids:
-        print(f"[INFO] Skipping {len(dead_key_ids)} previously-disabled Gemini key(s).")
+    dead_keys = set(state.get("_dead_gemini_keys", []))
+    if dead_keys:
+        print(f"[INFO] Skipping {len(dead_keys)} previously-disabled Gemini key(s).")
 
     client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
     await client.start()
 
-    preflight_check_keys(dead_key_ids)
-    if GEMINI_API_KEYS and all(key_id(key) in dead_key_ids for key in GEMINI_API_KEYS):
+    preflight_check_keys(dead_keys)
+    if len(dead_keys) >= len(GEMINI_API_KEYS):
         msg = ("همه‌ی کلیدهای Gemini نامعتبر/منقضی شدن؛ یه کلید جدید به "
                "GEMINI_API_KEYS اضافه کن.")
         print(f"[ERROR] {msg}")
@@ -650,14 +941,13 @@ async def _run() -> None:
         last_id = state.get(channel, 0)
         newest_seen = last_id
         raw_messages = []
-
         try:
             async for msg in client.iter_messages(
                 channel, min_id=last_id, limit=MAX_MESSAGES_PER_CHANNEL
             ):
                 if msg.text or msg.media:
                     raw_messages.append(msg)
-                newest_seen = max(newest_seen, msg.id)
+                    newest_seen = max(newest_seen, msg.id)
             channel_fail_counts[channel] = 0
         except FloodWaitError as e:
             print(f"[INFO] FloodWait while reading {channel}: sleeping {e.seconds}s")
@@ -673,8 +963,6 @@ async def _run() -> None:
                 print(f"[WARN] {alert}")
                 await send_admin_alert(client, alert)
                 alerted_channels.add(channel)
-            state["_dead_gemini_key_ids"] = sorted(dead_key_ids)
-            state.pop("_dead_gemini_keys", None)
             state["_channel_fail_counts"] = channel_fail_counts
             state["_alerted_dead_channels"] = sorted(alerted_channels)
             save_state(state)
@@ -686,83 +974,23 @@ async def _run() -> None:
         groups = group_albums(raw_messages)
 
         for group in groups:
-            # Use the first non-empty caption/text found in the group.
-            source_text = next((m.text for m in group if m.text), "") or ""
-
-            try:
-                result = classify_with_gemini(source_text, dead_key_ids)
-            except Exception as e:  # noqa: BLE001
-                print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
-                continue
-            finally:
-                await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
-
-            if not result.get("relevant"):
-                continue
-
-            final_text = result.get("text") or source_text
-            final_text = strip_source_traces(final_text)
-
-            # If cleanup left no text and there's no media either, there's
-            # nothing worth posting.
-            if not final_text.strip() and not any(m.media for m in group):
-                print(f"[SKIP] Nothing left to post from {channel} after cleanup")
-                continue
-
-            # Topic-level duplicate check: catches the same real-world
-            # story reported with different wording across channels (or
-            # across runs, if Gemini phrases the topic slug slightly
-            # differently each time) — a plain exact-text hash would miss
-            # this.
-            topic_key = (result.get("topic_key") or "").strip()
-            if topic_key:
-                if topic_already_posted(topic_key, posted_topics):
-                    print(f"[SKIP] Same underlying story already posted "
-                          f"(topic match) from {channel}")
-                    continue
-                tokens = list(_topic_tokens(topic_key))
-                if len(tokens) >= 2:
-                    posted_topics.append(tokens)
-
-            # Exact-text duplicate check (skip very short/empty text, not
-            # useful for dedup and would collide too easily).
-            if final_text and len(final_text.strip()) > 15:
-                h = content_hash(final_text)
-                if h in posted_hashes_set:
-                    print(f"[SKIP] Duplicate content from {channel}, already posted")
-                    continue
-                posted_hashes_set.add(h)
-                posted_hashes.append(h)
-
-            try:
-                await post_group(client, group, final_text)
-            except Exception as e:  # noqa: BLE001
-                print(f"[WARN] Failed to post a message from {channel}: {e}")
-                continue
-
-            record_post_stat(state, result.get("category", "unknown"), channel)
-            print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
-                  f"from {channel}")
-
-            # Spread approved posts out instead of firing them all
-            # back-to-back the moment they're approved.
-            gap = random.uniform(POST_GAP_MIN_SECONDS, POST_GAP_MAX_SECONDS)
-            print(f"[INFO] Waiting {gap:.0f}s before the next post")
-            await asyncio.sleep(gap)
+            await process_message_group(
+                client, channel, group, state, dead_keys, events,
+                posted_hashes, posted_hashes_set,
+            )
 
         state[channel] = newest_seen
+
         # Checkpoint after each channel so a timeout/crash partway through
         # doesn't lose all progress from channels already finished.
         if len(posted_hashes) > MAX_DEDUP_HASHES:
             posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
-        if len(posted_topics) > MAX_DEDUP_HASHES:
-            posted_topics = posted_topics[-MAX_DEDUP_HASHES:]
+            posted_hashes_set = set(posted_hashes)
+        events = prune_events(events, time.time())
+
         state["_posted_hashes"] = posted_hashes
-        state["_posted_topics"] = posted_topics
-        state["_dead_gemini_key_ids"] = sorted(dead_key_ids)
-        # Defense in depth: never allow the legacy raw-key field to be
-        # written back into last_ids.json.
-        state.pop("_dead_gemini_keys", None)
+        state["_events"] = events
+        state["_dead_gemini_keys"] = sorted(dead_keys)
         state["_channel_fail_counts"] = channel_fail_counts
         state["_alerted_dead_channels"] = sorted(alerted_channels)
         save_state(state)
@@ -770,10 +998,6 @@ async def _run() -> None:
     summary = maybe_build_stats_summary(state)
     if summary:
         await send_admin_alert(client, summary)
-
-    # Final security checkpoint: persist only one-way key IDs.
-    state["_dead_gemini_key_ids"] = sorted(dead_key_ids)
-    state.pop("_dead_gemini_keys", None)
 
     await client.disconnect()
     save_state(state)
