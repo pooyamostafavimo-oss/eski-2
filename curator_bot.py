@@ -20,8 +20,14 @@ Extra features:
   one key hits its rate limit (429). If a key turns out to be
   invalid/expired/revoked (not just rate-limited), it is permanently
   disabled and remembered in last_ids.json so future runs don't waste
-  time retrying it.
-- A small delay between Gemini calls to stay under free-tier RPM caps.
+  time retrying it. Only a SHA-256 fingerprint of the key is ever
+  written to last_ids.json (which the workflow commits to git) - never
+  the raw key itself.
+- An optional random pause after each post (POST_GAP_MIN_SECONDS /
+  POST_GAP_MAX_SECONDS, both 0/disabled by default) so posts don't land
+  at suspiciously regular, bot-like intervals.
+- A small delay after every Gemini call (classification, embedding, and
+  duplicate-event judging alike) to stay under free-tier RPM caps.
 - Event-level duplicate detection (see below) — the same real-world
   story reported with completely different wording by different source
   channels is only posted once, while genuinely different stories about
@@ -110,6 +116,7 @@ import hashlib
 import json
 import math
 import os
+import random
 import re
 import sys
 import time
@@ -230,6 +237,12 @@ RUN_TIMEOUT_SECONDS = float(os.environ.get("RUN_TIMEOUT_SECONDS", "").strip() or
 # as possibly dead/banned/removed (instead of just quietly skipping it
 # every run forever).
 CHANNEL_FAIL_ALERT_THRESHOLD = int(os.environ.get("CHANNEL_FAIL_ALERT_THRESHOLD", "").strip() or "3")
+
+# Optional random pause after each successful post (in addition to
+# GEMINI_CALL_DELAY_SECONDS), so posts don't land at suspiciously
+# regular, bot-like intervals. Both default to 0 (disabled) if unset.
+POST_GAP_MIN_SECONDS = float(os.environ.get("POST_GAP_MIN_SECONDS", "").strip() or "0")
+POST_GAP_MAX_SECONDS = float(os.environ.get("POST_GAP_MAX_SECONDS", "").strip() or "0")
 
 # Where to send operational alerts (all-keys-dead, a source channel
 # repeatedly failing, etc.) and the periodic stats summary. Optional -
@@ -484,6 +497,13 @@ def _mask_key(key: str) -> str:
     return f"...{key[-4:]}" if len(key) > 4 else "****"
 
 
+def _key_fingerprint(key: str) -> str:
+    """Never store a raw API key on disk (last_ids.json gets committed to
+    git by the workflow) - only its hash, so a disabled/dead key can still
+    be recognized on the next run without ever leaking the real value."""
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+
 def _gemini_request(url_for_key: Callable[[str], str], payload: dict, dead_keys: set) -> Optional[dict]:
     """Shared round-robin/retry/dead-key logic for any Gemini REST call
     (generateContent or embedContent). `url_for_key` builds the full URL
@@ -491,7 +511,7 @@ def _gemini_request(url_for_key: Callable[[str], str], payload: dict, dead_keys:
     if every usable key failed for this call."""
     global _key_cursor
 
-    active_keys = [k for k in GEMINI_API_KEYS if k not in dead_keys]
+    active_keys = [k for k in GEMINI_API_KEYS if _key_fingerprint(k) not in dead_keys]
     if not active_keys:
         return None
 
@@ -543,7 +563,7 @@ def _gemini_request(url_for_key: Callable[[str], str], payload: dict, dead_keys:
                 print(f"[WARN] Gemini key {_mask_key(key)} looks invalid/expired "
                       f"({err_status or resp.status_code}: {err_msg[:120]}); "
                       f"disabling it permanently.")
-                dead_keys.add(key)
+                dead_keys.add(_key_fingerprint(key))
             else:
                 print(f"[WARN] Gemini call failed: {resp.status_code} {err_msg[:200]}")
             continue
@@ -574,7 +594,7 @@ def _parse_json_response(raw: str) -> Optional[dict]:
 def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
     """Classify a message and, if relevant, extract its event fingerprint.
     Returns a safe "not relevant" default if every usable key fails."""
-    if not [k for k in GEMINI_API_KEYS if k not in dead_keys]:
+    if not [k for k in GEMINI_API_KEYS if _key_fingerprint(k) not in dead_keys]:
         print("[ERROR] No usable Gemini keys left — all are disabled as "
               "invalid/expired. Add a new key to GEMINI_API_KEYS.")
         return {"relevant": False, "category": "none", "action": "copy", "text": "", "fingerprint": {}}
@@ -698,7 +718,7 @@ def prune_events(events: list, now: float) -> list:
     return fresh
 
 
-def find_duplicate_event(
+async def find_duplicate_event(
     new_text: str,
     new_fp: dict,
     new_embedding: Optional[list],
@@ -708,7 +728,14 @@ def find_duplicate_event(
     """Returns the matching stored event dict if `new_text`/`new_fp` is
     judged to be the same real-world event as one already posted recently,
     else None. Cheap embedding similarity narrows candidates; only those
-    get an actual LLM judge call."""
+    get an actual LLM judge call.
+
+    Each judge call is a blocking HTTP request, so it's run in a worker
+    thread (asyncio.to_thread) to avoid stalling the event loop that the
+    Telethon client relies on, and is followed by the same
+    GEMINI_CALL_DELAY_SECONDS pause used after every other Gemini call, so
+    a message with several close candidates can't burst past the
+    free-tier RPM cap."""
     if new_embedding is None or not events:
         return None
 
@@ -722,11 +749,13 @@ def find_duplicate_event(
 
     scored.sort(key=lambda pair: -pair[0])
     for _, candidate in scored[:EVENT_CANDIDATE_TOP_K]:
-        is_dup = judge_same_event(
+        is_dup = await asyncio.to_thread(
+            judge_same_event,
             new_text, new_fp,
             candidate.get("raw_text", ""), candidate.get("fingerprint", {}),
             dead_keys,
         )
+        await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
         if is_dup:
             return candidate
     return None
@@ -741,7 +770,7 @@ def preflight_check_keys(dead_keys: set) -> None:
         "generationConfig": {"temperature": 0, "maxOutputTokens": 5},
     }
     for key in list(GEMINI_API_KEYS):
-        if key in dead_keys:
+        if _key_fingerprint(key) in dead_keys:
             continue
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
@@ -763,7 +792,7 @@ def preflight_check_keys(dead_keys: set) -> None:
                     or "api key" in err_msg.lower()):
                 print(f"[WARN] Preflight: Gemini key {_mask_key(key)} is "
                       f"invalid/expired; disabling it before the run starts.")
-                dead_keys.add(key)
+                dead_keys.add(_key_fingerprint(key))
 
 
 def group_albums(messages):
@@ -812,6 +841,10 @@ async def post_group(client: TelegramClient, group: list, final_text: str) -> No
         await asyncio.sleep(e.seconds + 1)
         await _send()
 
+    if POST_GAP_MAX_SECONDS > 0:
+        gap = random.uniform(POST_GAP_MIN_SECONDS, max(POST_GAP_MIN_SECONDS, POST_GAP_MAX_SECONDS))
+        await asyncio.sleep(gap)
+
 
 async def process_message_group(
     client: TelegramClient,
@@ -840,7 +873,7 @@ async def process_message_group(
     source_text = next((m.text for m in group if m.text), "") or ""
 
     try:
-        result = classify_with_gemini(source_text, dead_keys)
+        result = await asyncio.to_thread(classify_with_gemini, source_text, dead_keys)
     except Exception as e:  # noqa: BLE001
         print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
         return None
@@ -870,12 +903,15 @@ async def process_message_group(
     fingerprint = result.get("fingerprint") or {}
     fp_text = fingerprint_to_text(fingerprint)
     embedding_source = fp_text or final_text
-    new_embedding = embed_text(embedding_source, dead_keys)
+    new_embedding = None
+    if embedding_source.strip():
+        new_embedding = await asyncio.to_thread(embed_text, embedding_source, dead_keys)
+        await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
     if new_embedding is None:
         print(f"[WARN] Couldn't get embedding for a message from {channel}; "
               f"skipping semantic dedup check for it")
     else:
-        dup_event = find_duplicate_event(final_text, fingerprint, new_embedding, events, dead_keys)
+        dup_event = await find_duplicate_event(final_text, fingerprint, new_embedding, events, dead_keys)
         if dup_event is not None:
             print(f"[SKIP] Same underlying event already posted "
                   f"(judged duplicate) from {channel}")
@@ -930,7 +966,7 @@ async def _run() -> None:
     client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
     await client.start()
 
-    preflight_check_keys(dead_keys)
+    await asyncio.to_thread(preflight_check_keys, dead_keys)
     if len(dead_keys) >= len(GEMINI_API_KEYS):
         msg = ("همه‌ی کلیدهای Gemini نامعتبر/منقضی شدن؛ یه کلید جدید به "
                "GEMINI_API_KEYS اضافه کن.")
