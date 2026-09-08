@@ -1,6 +1,7 @@
 """
 News Curator Bot
 -----------------
+
 Reads new messages (text, photos, videos, albums) from a list of source
 Telegram channels using a Telethon *user* session (a normal Bot API bot
 can't read channels it isn't admin of), asks Gemini to classify each
@@ -27,8 +28,8 @@ Extra features:
   single post instead of being split into separate messages.
 - Telegram FloodWait errors are handled by waiting it out instead of
   crashing the run.
-- A watermark/signature (e.g. your channel link) is appended to the end
-  of every post, text or media caption.
+- A watermark/signature (e.g. your channel username) is appended to the
+  end of every post, text or media caption.
 - Strict relevance filtering: casual personal chit-chat, jokes between
   friends, ads/self-promotion, and other non-news content are rejected
   instead of being posted.
@@ -58,6 +59,10 @@ Extra features:
   lose progress already made.
 - An optional periodic (default weekly) summary of posts-by-category and
   posts-by-channel, sent to ADMIN_CHAT_ID.
+- A randomized pause after each approved post (POST_GAP_MIN/MAX_SECONDS)
+  so several messages approved in the same run don't all get published
+  back-to-back — they get spread out, roughly across the run instead of
+  landing all at once.
 
 Designed to run on a schedule (GitHub Actions cron, every 1-2 hours).
 State (last seen message id per source channel, plus recently-posted
@@ -70,6 +75,7 @@ import asyncio
 import hashlib
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -92,8 +98,8 @@ SESSION_STRING = os.environ["TG_SESSION_STRING"]
 TARGET_CHANNEL = os.environ["TARGET_CHANNEL"]  # e.g. "@my_channel"
 
 # Watermark/signature appended to the end of every post (e.g. your
-# channel's own link). Leave WATERMARK_TEXT empty to disable.
-WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "https://t.me/KosSherijat_69"
+# channel's own username). Leave WATERMARK_TEXT empty to disable.
+WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "@KosSherijat_69"
 
 # Telegram limits: 4096 chars for a plain text message, 1024 for a
 # media caption. We trim the generated text so the watermark always fits.
@@ -111,6 +117,7 @@ def add_watermark(text: str, is_caption: bool) -> str:
         return WATERMARK_TEXT[:limit]
     trimmed = text[:room].rstrip() if len(text) > room else text
     return f"{trimmed}{footer}" if trimmed else WATERMARK_TEXT
+
 
 # Gemini - supports multiple comma-separated keys for round-robin +
 # automatic fallback when one hits its rate limit.
@@ -164,6 +171,14 @@ MAX_DEDUP_HASHES = int(os.environ.get("MAX_DEDUP_HASHES", "500"))
 # before the ~1h cron interval.
 RUN_TIMEOUT_SECONDS = float(os.environ.get("RUN_TIMEOUT_SECONDS", "").strip() or "3300")
 
+# Random pause (seconds) after each approved post, before moving on to the
+# next one. This spreads posts out instead of firing them all back-to-back
+# the moment they're approved. Tune these so the total expected pause time
+# for a typical run's worth of posts stays comfortably under
+# RUN_TIMEOUT_SECONDS / your cron interval.
+POST_GAP_MIN_SECONDS = float(os.environ.get("POST_GAP_MIN_SECONDS", "").strip() or "120")
+POST_GAP_MAX_SECONDS = float(os.environ.get("POST_GAP_MAX_SECONDS", "").strip() or "600")
+
 # How many consecutive failed reads before we loudly flag a source channel
 # as possibly dead/banned/removed (instead of just quietly skipping it
 # every run forever).
@@ -186,6 +201,7 @@ STATE_FILE = Path(__file__).parent / "last_ids.json"
 CLASSIFY_PROMPT = """You are a strict content curator for a Telegram news
 channel. You only let through content that reads like an actual news
 item, report, or notable real-world story — never personal chit-chat.
+
 You will be given the text/caption of a message from another Telegram
 channel (it may also have a photo or video attached, which you can't see,
 but the text below is all of the written content).
@@ -330,6 +346,7 @@ _SOURCE_TRACE_LINE_PATTERNS = [
     re.compile(r"(?im)^[\s\W]*https?://t\.me/\S+[\s\W]*$"),
     re.compile(r"(?im)^\s*(join|عضویت در کانال|کانال ما|چنل ما)\b.*$"),
 ]
+
 # A bare t.me link that shows up in the middle of an otherwise-fine line
 # is stripped inline rather than dropping the whole line.
 _INLINE_TME_LINK = re.compile(r"https?://t\.me/\S+", re.IGNORECASE)
@@ -461,7 +478,6 @@ def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
         if raw.startswith("```"):
             raw = raw.strip("`")
             raw = raw.replace("json\n", "", 1).replace("json", "", 1)
-
         try:
             return json.loads(raw)
         except json.JSONDecodeError:
@@ -513,7 +529,6 @@ def group_albums(messages):
     groups = []
     current = []
     current_gid = None
-
     for msg in messages:
         gid = msg.grouped_id
         if gid is not None and gid == current_gid:
@@ -523,10 +538,8 @@ def group_albums(messages):
                 groups.append(current)
             current = [msg]
             current_gid = gid
-
     if current:
         groups.append(current)
-
     return groups
 
 
@@ -568,7 +581,6 @@ async def _run() -> None:
     posted_topic_hashes_set = set(posted_topic_hashes)
     channel_fail_counts = state.setdefault("_channel_fail_counts", {})
     alerted_channels = set(state.get("_alerted_dead_channels", []))
-
     dead_keys = set(state.get("_dead_gemini_keys", []))
     if dead_keys:
         print(f"[INFO] Skipping {len(dead_keys)} previously-disabled Gemini key(s).")
@@ -677,8 +689,13 @@ async def _run() -> None:
             print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
                   f"from {channel}")
 
-        state[channel] = newest_seen
+            # Spread approved posts out instead of firing them all
+            # back-to-back the moment they're approved.
+            gap = random.uniform(POST_GAP_MIN_SECONDS, POST_GAP_MAX_SECONDS)
+            print(f"[INFO] Waiting {gap:.0f}s before the next post")
+            await asyncio.sleep(gap)
 
+        state[channel] = newest_seen
         # Checkpoint after each channel so a timeout/crash partway through
         # doesn't lose all progress from channels already finished.
         if len(posted_hashes) > MAX_DEDUP_HASHES:
