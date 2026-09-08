@@ -16,7 +16,10 @@ which handles photos/videos/documents/albums transparently.
 
 Extra features:
 - Multiple Gemini API keys with round-robin + automatic fallback when
-  one key hits its rate limit (429).
+  one key hits its rate limit (429). If a key turns out to be
+  invalid/expired/revoked (not just rate-limited), it is permanently
+  disabled and remembered in last_ids.json so future runs don't waste
+  time retrying it.
 - A small delay between Gemini calls to stay under free-tier RPM caps.
 - Duplicate-content detection: if the same story/caption shows up in
   more than one source channel, it's only posted once.
@@ -26,6 +29,16 @@ Extra features:
   crashing the run.
 - A watermark/signature (e.g. your channel link) is appended to the end
   of every post, text or media caption.
+- Strict relevance filtering: casual personal chit-chat, jokes between
+  friends, ads/self-promotion, and other non-news content are rejected
+  instead of being posted.
+- Natural, human writing style: captions get 1-3 fitting emojis and a
+  conversational (not robotic) tone, while staying factual — no filler
+  or made-up details just to sound livelier.
+- Source-trace scrubbing: channel signatures, @mentions-only lines,
+  t.me links, and "forwarded from"/"منبع:" style attributions are
+  stripped from the final text as a safety net, so posts don't look
+  like an obvious copy-paste from another channel.
 
 Designed to run on a schedule (GitHub Actions cron, every 1-2 hours).
 State (last seen message id per source channel, plus recently-posted
@@ -38,6 +51,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -127,26 +141,59 @@ MAX_DEDUP_HASHES = int(os.environ.get("MAX_DEDUP_HASHES", "500"))
 
 STATE_FILE = Path(__file__).parent / "last_ids.json"
 
-CLASSIFY_PROMPT = """You are a content curator for a Telegram channel.
+CLASSIFY_PROMPT = """You are a strict content curator for a Telegram news
+channel. You only let through content that reads like an actual news
+item, report, or notable real-world story — never personal chit-chat.
 You will be given the text/caption of a message from another Telegram
 channel (it may also have a photo or video attached, which you can't see,
 but the text below is all of the written content).
 
-Decide which single category best fits this message:
+First, mark it NOT relevant (category "none") if it is any of:
+- personal chit-chat, a joke between friends, or a first-person
+  daily-life remark/complaint that isn't an actual news story (example:
+  "منم روم نمیشه دِین رفیقمو بدم" — a casual personal comment, not news)
+- an ad, self-promotion, or an invitation to join another channel/bot
+- a question, poll, or something addressed directly to the channel's
+  own audience
+- just a link, hashtag spam, or a channel signature with no real content
+- too vague, generic, or short to be a real story
+
+If it's genuinely a news-like item, decide which single category best fits:
 - "war": war / military conflict / geopolitical crisis news
-- "funny": funny or amusing everyday event, meme-worthy story
+- "funny": funny or amusing real-world event, meme-worthy story
 - "random": random/miscellaneous notable daily event, not war/funny/strange
 - "important": an important event worth knowing about (non-war)
-- "strange": a strange, bizarre, or surprising event
-- "none": doesn't fit any of the above, irrelevant
+- "strange": a strange, bizarre, or surprising real-world event
 
-If it fits one of the five categories above, also decide whether to COPY
-it as-is (it's already clear, well-written, and concise) or REWRITE it
-(condense, clean up, fix formatting, translate if needed) into a short,
-punchy caption. Do NOT mention or link back to any source channel in the
-output text. If the input text is empty (e.g. a photo/video with no
-caption), it's still fine to mark it relevant if you have no reason to
-think otherwise — just return an empty "text".
+If relevant, also decide whether to COPY it (keep the original wording
+and facts basically as-is, only touching it up lightly — fixing
+formatting, removing source traces, adding fitting emojis) or REWRITE it
+(condense, clean up, translate if needed) into a short, punchy caption.
+Prefer REWRITE whenever the original text contains anything that reveals
+its source — a channel name, @username, t.me link, "forwarded from",
+"منبع:"/"به نقل از", or any self-promotion — so the result reads like an
+original post instead of an obvious copy-paste. Never include a source
+channel's name, @username, or link in the output text, whether you copy
+or rewrite.
+
+Writing style for the final "text" (whether copied or rewritten):
+- Keep it natural and easy to read, not stiff or robotic — like a real
+  person sharing news with friends, not a press release.
+- The content must stay coherent and make actual sense: don't invent,
+  exaggerate, or pad with filler/nonsense just to sound lively. If the
+  source text is thin, keep the caption short rather than making things
+  up.
+- Add 1-3 emojis that genuinely fit the story's content and category
+  (e.g. 🔥⚠️ for war/important, 😂 for funny, 😳🤯 for strange, 📰 for
+  random) — placed naturally (start of a line, next to the key fact),
+  never spammy, never more than one emoji per short sentence, and never
+  if the story is somber/tragic enough that emojis would feel out of
+  place (e.g. deaths, disasters — keep those plain or use at most a
+  single sober emoji like ⚠️).
+
+If the input text is empty (e.g. a photo/video with no caption), it's
+still fine to mark it relevant if you have no reason to think otherwise
+— just return an empty "text".
 
 Respond with ONLY valid JSON, no markdown fences, no extra text, in this
 exact shape:
@@ -174,26 +221,78 @@ def save_state(state: dict) -> None:
     )
 
 
+# Lines that are made up ONLY of a source-channel signature (a bare
+# @mention, a bare t.me link, "Forwarded from ...", "منبع: ...", a
+# "join our channel" plug, etc.) get dropped entirely. This is a safety
+# net on top of the Gemini prompt, in case the model leaves one in.
+_SOURCE_TRACE_LINE_PATTERNS = [
+    re.compile(r"(?im)^\s*forwarded from\b.*$"),
+    re.compile(r"(?im)^\s*فوروارد(?:\s*شده)?\s*از\b.*$"),
+    re.compile(r"(?im)^\s*(منبع|به نقل از|به گزارش)\s*[:：].*$"),
+    re.compile(r"(?im)^[\s\W]*@[A-Za-z0-9_]{4,32}[\s\W]*$"),
+    re.compile(r"(?im)^[\s\W]*https?://t\.me/\S+[\s\W]*$"),
+    re.compile(r"(?im)^\s*(join|عضویت در کانال|کانال ما|چنل ما)\b.*$"),
+]
+# A bare t.me link that shows up in the middle of an otherwise-fine line
+# is stripped inline rather than dropping the whole line.
+_INLINE_TME_LINK = re.compile(r"https?://t\.me/\S+", re.IGNORECASE)
+
+
+def strip_source_traces(text: str) -> str:
+    """Remove channel signatures, bare @mentions/t.me links, and
+    forwarded/attribution lines so a post doesn't look like an obvious
+    copy-paste from another channel."""
+    if not text:
+        return text
+    kept_lines = [
+        line for line in text.splitlines()
+        if not any(p.match(line) for p in _SOURCE_TRACE_LINE_PATTERNS)
+    ]
+    cleaned = "\n".join(kept_lines)
+    cleaned = _INLINE_TME_LINK.sub("", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
 def content_hash(text: str) -> str:
     normalized = " ".join(text.strip().lower().split())
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-def classify_with_gemini(message_text: str) -> dict:
-    """Try each configured Gemini key in round-robin order; if a key is
-    rate-limited (429), fall back to the next one. Returns a safe default
-    (not relevant) if every key fails."""
+def _mask_key(key: str) -> str:
+    """Never print a full API key in logs."""
+    return f"...{key[-4:]}" if len(key) > 4 else "****"
+
+
+def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
+    """Try each still-usable Gemini key in round-robin order.
+
+    - On 429 (rate limit) the key is just skipped for this call — it's
+      still usable later.
+    - On a 400/401/403 that indicates an invalid, revoked, or expired
+      API key, the key is added to `dead_keys` (mutated in place) and
+      never tried again, in this run or future ones (the caller persists
+      `dead_keys` to last_ids.json).
+
+    Returns a safe default (not relevant) if every usable key fails.
+    """
     global _key_cursor
+
+    active_keys = [k for k in GEMINI_API_KEYS if k not in dead_keys]
+    if not active_keys:
+        print("[ERROR] No usable Gemini keys left — all are disabled as "
+              "invalid/expired. Add a new key to GEMINI_API_KEYS.")
+        return {"relevant": False, "category": "none", "action": "copy", "text": ""}
 
     prompt = CLASSIFY_PROMPT.replace("{MESSAGE}", (message_text or "")[:4000])
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.4},
+        "generationConfig": {"temperature": 0.6},
     }
 
-    n_keys = len(GEMINI_API_KEYS)
+    n_keys = len(active_keys)
     for attempt in range(n_keys):
-        key = GEMINI_API_KEYS[(_key_cursor + attempt) % n_keys]
+        key = active_keys[(_key_cursor + attempt) % n_keys]
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
             f"{GEMINI_MODEL}:generateContent?key={key}"
@@ -201,12 +300,33 @@ def classify_with_gemini(message_text: str) -> dict:
         try:
             resp = requests.post(url, json=payload, timeout=60)
         except requests.RequestException as e:
-            print(f"[WARN] Gemini request error on key #{attempt}: {e}")
+            print(f"[WARN] Gemini request error on key {_mask_key(key)}: {e}")
             continue
 
         if resp.status_code == 429:
-            print(f"[WARN] Gemini key #{(_key_cursor + attempt) % n_keys} rate-limited, "
-                  f"trying next key")
+            print(f"[WARN] Gemini key {_mask_key(key)} rate-limited, trying next key")
+            continue
+
+        if resp.status_code in (400, 401, 403):
+            err_status, err_msg = "", resp.text[:300]
+            try:
+                err = resp.json().get("error", {})
+                err_status = err.get("status", "")
+                err_msg = err.get("message", err_msg)
+            except ValueError:
+                pass
+            looks_like_bad_key = (
+                err_status in ("PERMISSION_DENIED", "UNAUTHENTICATED")
+                or "api key" in err_msg.lower()
+                or "api_key" in err_status.lower()
+            )
+            if looks_like_bad_key:
+                print(f"[WARN] Gemini key {_mask_key(key)} looks invalid/expired "
+                      f"({err_status or resp.status_code}: {err_msg[:120]}); "
+                      f"disabling it permanently.")
+                dead_keys.add(key)
+            else:
+                print(f"[WARN] Gemini call failed: {resp.status_code} {err_msg[:200]}")
             continue
 
         if not resp.ok:
@@ -215,7 +335,7 @@ def classify_with_gemini(message_text: str) -> dict:
 
         # Success — advance the cursor so the next call starts from the
         # next key (spreads load evenly across keys).
-        _key_cursor = (_key_cursor + attempt + 1) % n_keys
+        _key_cursor = (_key_cursor + attempt + 1) % max(n_keys, 1)
 
         data = resp.json()
         try:
@@ -233,7 +353,7 @@ def classify_with_gemini(message_text: str) -> dict:
         except json.JSONDecodeError:
             return {"relevant": False, "category": "none", "action": "copy", "text": ""}
 
-    print("[WARN] All Gemini keys failed/rate-limited for this message; skipping.")
+    print("[WARN] All usable Gemini keys failed/rate-limited for this message; skipping.")
     return {"relevant": False, "category": "none", "action": "copy", "text": ""}
 
 
@@ -296,6 +416,13 @@ async def main() -> None:
     posted_hashes = state.get("_posted_hashes", [])
     posted_hashes_set = set(posted_hashes)
 
+    dead_keys = set(state.get("_dead_gemini_keys", []))
+    if dead_keys:
+        print(f"[INFO] Skipping {len(dead_keys)} previously-disabled Gemini key(s).")
+    if len(dead_keys) >= len(GEMINI_API_KEYS):
+        print("[ERROR] All configured Gemini keys were previously marked "
+              "invalid/expired. Add a working key to GEMINI_API_KEYS.")
+
     client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
     await client.start()
 
@@ -328,7 +455,7 @@ async def main() -> None:
             source_text = next((m.text for m in group if m.text), "") or ""
 
             try:
-                result = classify_with_gemini(source_text)
+                result = classify_with_gemini(source_text, dead_keys)
             except Exception as e:  # noqa: BLE001
                 print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
                 continue
@@ -339,6 +466,13 @@ async def main() -> None:
                 continue
 
             final_text = result.get("text") or source_text
+            final_text = strip_source_traces(final_text)
+
+            # If cleanup left no text and there's no media either, there's
+            # nothing worth posting.
+            if not final_text.strip() and not any(m.media for m in group):
+                print(f"[SKIP] Nothing left to post from {channel} after cleanup")
+                continue
 
             # Duplicate-content check (skip very short/empty text, not
             # useful for dedup and would collide too easily).
@@ -365,6 +499,7 @@ async def main() -> None:
     if len(posted_hashes) > MAX_DEDUP_HASHES:
         posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
     state["_posted_hashes"] = posted_hashes
+    state["_dead_gemini_keys"] = sorted(dead_keys)
 
     await client.disconnect()
     save_state(state)
