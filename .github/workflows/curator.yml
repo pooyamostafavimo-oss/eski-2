@@ -2,8 +2,11 @@ name: News Curator Bot
 
 on:
   schedule:
-    # Every hour (fits the requested 1-2 hour cadence)
-    - cron: "0 * * * *"
+    # Hourly during the day (UTC 03:00-21:00 ≈ Tehran 06:30-00:30)
+    - cron: "0 3-21 * * *"
+    # Every 2h during Tehran's quiet hours (UTC 22,0,2 ≈ Tehran ~01:30-05:30),
+    # when there's usually little news worth the extra Gemini quota
+    - cron: "0 22,0,2 * * *"
   workflow_dispatch: {}
 
 # Prevent overlapping runs from racing on last_ids.json
@@ -37,6 +40,11 @@ jobs:
           TARGET_CHANNEL: ${{ secrets.TARGET_CHANNEL }}
           GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
           SOURCE_CHANNELS: ${{ secrets.SOURCE_CHANNELS }}
+          # Optional - all have sensible defaults if the secret isn't set.
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
+          RUN_TIMEOUT_SECONDS: ${{ secrets.RUN_TIMEOUT_SECONDS }}
+          CHANNEL_FAIL_ALERT_THRESHOLD: ${{ secrets.CHANNEL_FAIL_ALERT_THRESHOLD }}
+          STATS_INTERVAL_SECONDS: ${{ secrets.STATS_INTERVAL_SECONDS }}
         run: python curator_bot.py
 
       - name: Commit updated state
