@@ -141,7 +141,7 @@ TARGET_CHANNEL = os.environ["TARGET_CHANNEL"]  # e.g. "@my_channel"
 
 # Watermark/signature appended to the end of every post (e.g. your
 # channel's own link). Leave WATERMARK_TEXT empty to disable.
-WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "https://t.me/KosSherijat_69"
+WATERMARK_TEXT = os.environ.get("WATERMARK_TEXT", "").strip() or "@KosSherijat_69"
 
 # Telegram limits: 4096 chars for a plain text message, 1024 for a
 # media caption. We trim the generated text so the watermark always fits.
