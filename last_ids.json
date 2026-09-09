@@ -18,7 +18,7 @@
     "by_category": {
       "strange": 4,
       "random": 6,
-      "important": 28,
+      "important": 29,
       "war": 37,
       "funny": 1
     },
@@ -26,7 +26,7 @@
       "Newz021": 7,
       "withyashar": 22,
       "drtel": 3,
-      "Tala_Dollar_ir": 11,
+      "Tala_Dollar_ir": 12,
       "IranianMinds": 11,
       "pm_afshaa": 17,
       "nabe_saman": 1,
@@ -112,7 +112,9 @@
     "573681a0f97317cdc29f7e785c92cd181ee11df44675f635a46fa47ad1760cac",
     "57541b3f05b0f9c32fc3ff36117201ed6cc7d28487863033eaef1893a8932305",
     "e53fbd9a806efb006273d473243b97955434479a4c093a5978d109e3164d9a7e",
-    "b9cdc3d64ab00ced559ed0f4e7efac1d05fea14bc639888f4a521b029918cef3"
+    "b9cdc3d64ab00ced559ed0f4e7efac1d05fea14bc639888f4a521b029918cef3",
+    "fd800830e708c18e487a6ad088b07dc544a1bda2a2e8debad93ce9023ec3cca5",
+    "d41d2319b718a5e37aab90fd0618395023c680391e2bec1a268106b32fd1c71c"
   ],
   "_posted_topics": [
     [
@@ -188,7 +190,7 @@
     "drtel": 66178,
     "nikotiinn_text": 15829,
     "nabe_saman": 26808,
-    "Tala_Dollar_ir": 3008,
+    "Tala_Dollar_ir": 3013,
     "SoccerrWorld": 7186
   }
 }
