@@ -17,14 +17,14 @@
     "since": 1788876022.1705258,
     "by_category": {
       "strange": 5,
-      "random": 6,
+      "random": 7,
       "important": 37,
-      "war": 53,
+      "war": 55,
       "funny": 1
     },
     "by_channel": {
       "Newz021": 11,
-      "withyashar": 33,
+      "withyashar": 36,
       "drtel": 6,
       "Tala_Dollar_ir": 12,
       "IranianMinds": 14,
@@ -141,7 +141,9 @@
     "2f0664248a7d07963f8d2ef287ef608e104a43fb58dbdbfe3ddefc150f2e4f44",
     "cfb40f86a27f4739bb4db93373866425b4352472a9ca80e200cca23e7612804a",
     "46c1101b5c51786b8f8f5fe93c1795649847306941237388ebbc9b5d09082de4",
-    "37f4bd5d0470febfad9eb8868c3d83606900900f047d43231a566df3bbb86818"
+    "37f4bd5d0470febfad9eb8868c3d83606900900f047d43231a566df3bbb86818",
+    "7dcbc70b77a4b404f9de534bd6c2e8ec0dd87423d4dcefe301aaea57ccf794ba",
+    "b1170c1c17d287fb34ac18fd59d323f0bdf4347449b55a17ef773b0f9775f986"
   ],
   "_posted_topics": [
     [
@@ -190,7 +192,7 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 22742,
+  "withyashar": 22750,
   "pm_afshaa": 100464,
   "IranianMinds": 28808,
   "hutt_news": 5465,
@@ -199,7 +201,7 @@
   "drtel": 66215,
   "nikotiinn_text": 15839,
   "nabe_saman": 26822,
-  "Tala_Dollar_ir": 3043,
+  "Tala_Dollar_ir": 3046,
   "SoccerrWorld": 7264,
   "_events": [],
   "_dead_gemini_keys": [
