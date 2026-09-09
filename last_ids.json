@@ -17,14 +17,15 @@
     "since": 1788876022.1705258,
     "by_category": {
       "strange": 2,
-      "random": 1,
-      "important": 3,
-      "war": 4
+      "random": 3,
+      "important": 4,
+      "war": 6
     },
     "by_channel": {
       "Newz021": 5,
-      "withyashar": 4,
-      "drtel": 1
+      "withyashar": 8,
+      "drtel": 1,
+      "Tala_Dollar_ir": 1
     }
   },
   "Newz021": 64248,
@@ -39,7 +40,11 @@
     "a4c3877ec807f19cf9d2b9ef6735be64d539f6ec1ef124bb18bae7a51764b224",
     "0bc702aa7a1ba08ede1ced1ba5090956927e1f554b68517cfadfab4e7002cbe7",
     "665ad1d1e0e78c10f7598de28381aeb33b675057e6f89f6a19151b72c50504bc",
-    "6b8309c3444902b0e23bd8b171dcc53e32a34cb570c32ea64f687395b2946553"
+    "6b8309c3444902b0e23bd8b171dcc53e32a34cb570c32ea64f687395b2946553",
+    "657c81880d3c81af3484e8f239bd620472f25007a529cf405c87def6767343f2",
+    "d177d4b288eca33e958a77dcb275c84f281141a69ea200356385a5d1112ee499",
+    "82017c782a223d1a0aca6bf5efe834216ad8c729b7a40927d8736c13a2a01375",
+    "8a2c5dc6070b9f64d712aac502b7658f6971574b7fa960169d4be04d7487e9e4"
   ],
   "_posted_topics": [
     [
@@ -88,16 +93,16 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 22638,
+  "withyashar": 22652,
   "pm_afshaa": 100421,
   "IranianMinds": 28760,
   "hutt_news": 5453,
   "BadCandom": 49522,
-  "FUTBALLI18": 92788,
-  "drtel": 66150,
+  "FUTBALLI18": 92798,
+  "drtel": 66156,
   "nikotiinn_text": 15827,
   "nabe_saman": 26803,
-  "Tala_Dollar_ir": 2981,
+  "Tala_Dollar_ir": 2990,
   "SoccerrWorld": 7166,
   "_events": [],
   "_dead_gemini_keys": [
