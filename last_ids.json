@@ -19,11 +19,11 @@
       "strange": 5,
       "random": 6,
       "important": 33,
-      "war": 46,
+      "war": 47,
       "funny": 1
     },
     "by_channel": {
-      "Newz021": 8,
+      "Newz021": 9,
       "withyashar": 28,
       "drtel": 4,
       "Tala_Dollar_ir": 12,
@@ -130,7 +130,8 @@
     "7239e78c2567ff0f158e1319574e55040532fd7b3589462a1cfe386b66b33ae6",
     "5df25603e940fc9ce6f1870782b5d0f45adc5be4249b2117d9fffea456ce683f",
     "16ab18c232b02216a780e4ee870140ddab878d31454b46e5a515e35fe4c99b85",
-    "4466157939e50085a19b50bc3d7953da1ea76c297f36327394a0bfd9ef38ade8"
+    "4466157939e50085a19b50bc3d7953da1ea76c297f36327394a0bfd9ef38ade8",
+    "ae47c68f9786ef94d75e1e7a0571acff1acab8ac7eb5493c832a0359339d9e9d"
   ],
   "_posted_topics": [
     [
@@ -196,7 +197,7 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_urgent_checked_id": {
-    "Newz021": 64270,
+    "Newz021": 64271,
     "withyashar": 22688,
     "pm_afshaa": 100454,
     "IranianMinds": 28790,
