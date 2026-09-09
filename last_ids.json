@@ -19,12 +19,12 @@
       "strange": 4,
       "random": 6,
       "important": 30,
-      "war": 42,
+      "war": 44,
       "funny": 1
     },
     "by_channel": {
-      "Newz021": 7,
-      "withyashar": 25,
+      "Newz021": 8,
+      "withyashar": 26,
       "drtel": 4,
       "Tala_Dollar_ir": 12,
       "IranianMinds": 12,
@@ -120,7 +120,9 @@
     "bc688aef164ca62e400a6d989b30fb8eda67db143d61312dbd322427ffdde1bb",
     "cdfba49edd43261efde8e49885735a8a58e566cf2b6de0e16685cc09a7ad23e3",
     "c32b14e442884411912d9bd97d910c3742313805eb9d20d694ec8f08ba54ecee",
-    "1b8b56d46c41918c84591bdb002bd3cdf05e35f60c54f45013aa19607546b3d9"
+    "1b8b56d46c41918c84591bdb002bd3cdf05e35f60c54f45013aa19607546b3d9",
+    "45459ffd62b971ed622663dcfee470161ed7f77be0bd64e8b63eaca41dd3b1ce",
+    "08ea4ee8a3e7a64d4424d6466da36ca949348927958f97b6d6d968411f1e1522"
   ],
   "_posted_topics": [
     [
@@ -186,8 +188,8 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_urgent_checked_id": {
-    "Newz021": 64264,
-    "withyashar": 22678,
+    "Newz021": 64265,
+    "withyashar": 22679,
     "pm_afshaa": 100451,
     "IranianMinds": 28779,
     "hutt_news": 5456,
