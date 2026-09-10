@@ -19,12 +19,12 @@
       "strange": 7,
       "random": 10,
       "important": 47,
-      "war": 79,
+      "war": 80,
       "funny": 2
     },
     "by_channel": {
       "Newz021": 12,
-      "withyashar": 62,
+      "withyashar": 63,
       "drtel": 6,
       "Tala_Dollar_ir": 14,
       "IranianMinds": 18,
@@ -182,7 +182,8 @@
     "7cf2114748f4ce3ce39e178da3563c58e46e229ac938a5aa6bee27924b3e6e0d",
     "d9246460b16213e76c21438aeb8980ae5c5f0ff3d30d8ff1df73e113412f3878",
     "44c3b151414768f94ff3c7723705c2b917c7321559e7fd3c4c59f8c26e4abd6d",
-    "4045191b9606abe73651b8fefb2516926d3e2191cacd584ffe50b092d05a381b"
+    "4045191b9606abe73651b8fefb2516926d3e2191cacd584ffe50b092d05a381b",
+    "79c643ed869df75514cc72fa2fbeff179fd81fd06e6bb27c41bd87c0215444a1"
   ],
   "_posted_topics": [
     [
@@ -249,7 +250,7 @@
   ],
   "_urgent_checked_id": {
     "Newz021": 64302,
-    "withyashar": 22774,
+    "withyashar": 22775,
     "pm_afshaa": 100490,
     "IranianMinds": 28823,
     "hutt_news": 5465,
@@ -259,6 +260,6 @@
     "nikotiinn_text": 15839,
     "nabe_saman": 26832,
     "Tala_Dollar_ir": 3072,
-    "SoccerrWorld": 7280
+    "SoccerrWorld": 7281
   }
 }
