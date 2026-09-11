@@ -19,7 +19,7 @@
       "strange": 13,
       "random": 15,
       "important": 77,
-      "war": 148,
+      "war": 149,
       "funny": 4
     },
     "by_channel": {
@@ -28,7 +28,7 @@
       "drtel": 8,
       "Tala_Dollar_ir": 26,
       "IranianMinds": 31,
-      "pm_afshaa": 33,
+      "pm_afshaa": 34,
       "nabe_saman": 4,
       "SoccerrWorld": 4,
       "BadCandom": 5,
@@ -297,7 +297,8 @@
     "0684dbbcea62a137313d1ab4d0a4c2ceb78c2aaa5d4ba8ad7d7668f9986db2ba",
     "9d0ed9beea806b6697e77da2f385cddffe4c942711557b3780029aa988a34f1b",
     "6d9ddbc3f412558550db0cfac489d0b80578e743b4a7ac1d64ec7d42deabb3c4",
-    "46f437ff4e65aa2564b8ab325b73bcc8872e7902e5c6874329b3e5e79e606ffd"
+    "46f437ff4e65aa2564b8ab325b73bcc8872e7902e5c6874329b3e5e79e606ffd",
+    "9bb5929a06e75c8b4e3bb04003f0784b8294db9bc442d6ea9cae8ddf1658f605"
   ],
   "_posted_topics": [
     [
@@ -363,17 +364,17 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_urgent_checked_id": {
-    "Newz021": 64344,
+    "Newz021": 64345,
     "withyashar": 22871,
-    "pm_afshaa": 100545,
+    "pm_afshaa": 100546,
     "IranianMinds": 28890,
     "hutt_news": 5480,
     "BadCandom": 49592,
-    "FUTBALLI18": 92971,
-    "drtel": 66285,
+    "FUTBALLI18": 92973,
+    "drtel": 66286,
     "nikotiinn_text": 15859,
     "nabe_saman": 26863,
-    "Tala_Dollar_ir": 3144,
+    "Tala_Dollar_ir": 3145,
     "SoccerrWorld": 7386
   }
 }
