@@ -18,12 +18,12 @@
     "by_category": {
       "strange": 16,
       "random": 20,
-      "important": 87,
+      "important": 88,
       "war": 171,
       "funny": 4
     },
     "by_channel": {
-      "Newz021": 24,
+      "Newz021": 25,
       "withyashar": 146,
       "drtel": 11,
       "Tala_Dollar_ir": 26,
@@ -36,7 +36,7 @@
       "FUTBALLI18": 2
     }
   },
-  "Newz021": 64364,
+  "Newz021": 64365,
   "_posted_hashes": [
     "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b",
     "f1de20ee00951e7c32f932d2f7693f4ea47cefb0498f6eef5b39fae1aed6cf8b",
@@ -336,7 +336,8 @@
     "4ba7d3b912e4ff35fb4f42fcedd0304576fe1b2017fdc373bd49c6b98a22cef2",
     "997e148be84634039579716fdd477c0f15b1ab27b0e8db69b63ca21286d67b65",
     "9e1b6a6698aed916da61ce5817b7348007142ae48e4358f30a06fff403b4c009",
-    "f0b6df862dbac3d8c9e008d7e82e614755ad8274528f6fe6b8f3c90441ba4445"
+    "f0b6df862dbac3d8c9e008d7e82e614755ad8274528f6fe6b8f3c90441ba4445",
+    "6ede51cb2374be92db76c860e61be87b684f1be438b2df7ee0531efabfb9babb"
   ],
   "_posted_topics": [
     [
@@ -394,7 +395,7 @@
   "drtel": 66323,
   "nikotiinn_text": 15870,
   "nabe_saman": 26872,
-  "Tala_Dollar_ir": 3180,
+  "Tala_Dollar_ir": 3186,
   "SoccerrWorld": 7419,
   "_events": [],
   "_dead_gemini_keys": [
