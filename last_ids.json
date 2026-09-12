@@ -18,16 +18,16 @@
     "by_category": {
       "strange": 19,
       "random": 24,
-      "important": 118,
-      "war": 227,
+      "important": 120,
+      "war": 228,
       "funny": 5
     },
     "by_channel": {
       "Newz021": 25,
       "withyashar": 198,
       "drtel": 14,
-      "Tala_Dollar_ir": 36,
-      "IranianMinds": 50,
+      "Tala_Dollar_ir": 37,
+      "IranianMinds": 52,
       "pm_afshaa": 50,
       "nabe_saman": 5,
       "SoccerrWorld": 6,
@@ -36,7 +36,7 @@
       "FUTBALLI18": 3
     }
   },
-  "Newz021": 64371,
+  "Newz021": 64377,
   "_posted_hashes": [
     "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b",
     "f1de20ee00951e7c32f932d2f7693f4ea47cefb0498f6eef5b39fae1aed6cf8b",
@@ -431,7 +431,10 @@
     "f972f6c2722811434d28da9d2a2ed442a3356ce996d2505a383c210e1dd0a3ab",
     "db3837d53374196367dfa809e6c3f7375b1def51262a5b5147e1238984a01559",
     "b6efa6f7863457f6075039e5ee616d0f94d6bf76a193bf109396f1661ef301a7",
-    "49b0a422af5dad5589c564e997b93fbecb409dad6366f91f7c0071e0537bfc78"
+    "49b0a422af5dad5589c564e997b93fbecb409dad6366f91f7c0071e0537bfc78",
+    "313f0594c690cd62c8cc166bc90dcaa5afa6a8b53bd0b69848353ff7fcb1214d",
+    "dcbef4f53d7b8345061d6e8b7b71c7b3ab3eb7a17b381bf3b99f0326fa6940fe",
+    "aaeda5d2e256b2eee77df341e5c7c1590d27441f3c641c6987fbd6193a717f87"
   ],
   "_posted_topics": [
     [
@@ -480,17 +483,17 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 22954,
-  "pm_afshaa": 100593,
-  "IranianMinds": 28940,
-  "hutt_news": 5488,
-  "BadCandom": 49622,
-  "FUTBALLI18": 93018,
-  "drtel": 66339,
-  "nikotiinn_text": 15871,
-  "nabe_saman": 26879,
-  "Tala_Dollar_ir": 3203,
-  "SoccerrWorld": 7436,
+  "withyashar": 22969,
+  "pm_afshaa": 100611,
+  "IranianMinds": 28955,
+  "hutt_news": 5492,
+  "BadCandom": 49627,
+  "FUTBALLI18": 93027,
+  "drtel": 66344,
+  "nikotiinn_text": 15875,
+  "nabe_saman": 26883,
+  "Tala_Dollar_ir": 3216,
+  "SoccerrWorld": 7465,
   "_events": [],
   "_dead_gemini_keys": [
     "26d4f95a012788ea7729ad0300e06793867e2fdb7b2931ee152058f845509bf8",
