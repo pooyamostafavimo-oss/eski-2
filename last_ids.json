@@ -17,14 +17,14 @@
     "since": 1788876022.1705258,
     "by_category": {
       "strange": 22,
-      "random": 28,
-      "important": 147,
-      "war": 289,
+      "random": 29,
+      "important": 148,
+      "war": 291,
       "funny": 7
     },
     "by_channel": {
-      "Newz021": 30,
-      "withyashar": 235,
+      "Newz021": 31,
+      "withyashar": 238,
       "drtel": 17,
       "Tala_Dollar_ir": 42,
       "IranianMinds": 62,
@@ -36,7 +36,7 @@
       "FUTBALLI18": 6
     }
   },
-  "Newz021": 64428,
+  "Newz021": 64432,
   "_posted_hashes": [
     "1d7f8e39f86e123366c9282d0b55bb22ccd37d5eb76e3542128ae4c9aaf9b55b",
     "f1de20ee00951e7c32f932d2f7693f4ea47cefb0498f6eef5b39fae1aed6cf8b",
@@ -529,7 +529,11 @@
     "774f151ba21c25ed6da87ee4e22c81d64b03c4187470d5ed1027dad9f22497ac",
     "5029d8875254c93eafa4fe03773a468da175f492f7044f84f383fcd2ace5998d",
     "4ea62cdc6dee7496077199073a6f47fc222944563326e0aaa945c76871fa73f5",
-    "3e602bea08cb6b03ce94238d6dbb0fe92a3695fb6e285595516631bcb345dec1"
+    "3e602bea08cb6b03ce94238d6dbb0fe92a3695fb6e285595516631bcb345dec1",
+    "0597568742498640059c91853dc678225f7c1f6e86b272da68d6e5345349bb99",
+    "afee289dcd98f3dee195ef8d2dee97544267ca372fd84a001bebd896e4108941",
+    "8575291f09ea63075096fee4050648c13635541797dc95abee7ecf60257074fc",
+    "08fcb108f7929ac25b29de069d794996de6568a416cc9f560013d2b3e13d286e"
   ],
   "_posted_topics": [
     [
@@ -578,17 +582,17 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 23035,
-  "pm_afshaa": 100690,
-  "IranianMinds": 29008,
-  "hutt_news": 5505,
-  "BadCandom": 49661,
-  "FUTBALLI18": 93167,
-  "drtel": 66390,
-  "nikotiinn_text": 15892,
-  "nabe_saman": 26912,
-  "Tala_Dollar_ir": 3268,
-  "SoccerrWorld": 7573,
+  "withyashar": 23054,
+  "pm_afshaa": 100700,
+  "IranianMinds": 29018,
+  "hutt_news": 5507,
+  "BadCandom": 49667,
+  "FUTBALLI18": 93177,
+  "drtel": 66400,
+  "nikotiinn_text": 15894,
+  "nabe_saman": 26917,
+  "Tala_Dollar_ir": 3273,
+  "SoccerrWorld": 7590,
   "_events": [],
   "_dead_gemini_keys": [
     "26d4f95a012788ea7729ad0300e06793867e2fdb7b2931ee152058f845509bf8",
