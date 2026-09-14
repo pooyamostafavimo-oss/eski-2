@@ -19,12 +19,12 @@
       "strange": 25,
       "random": 31,
       "important": 149,
-      "war": 296,
+      "war": 297,
       "funny": 7
     },
     "by_channel": {
       "Newz021": 33,
-      "withyashar": 245,
+      "withyashar": 246,
       "drtel": 17,
       "Tala_Dollar_ir": 42,
       "IranianMinds": 62,
@@ -38,7 +38,6 @@
   },
   "Newz021": 64442,
   "_posted_hashes": [
-    "36ba24a99c2653fda0a3c0f7a1ba8cae92f6ecc1096baf89a866ed1d09f5727f",
     "ff3f6e138bcaa56ea60287f55ad9421645b608da07066566ba598b6f7dd26d0c",
     "a4c3877ec807f19cf9d2b9ef6735be64d539f6ec1ef124bb18bae7a51764b224",
     "0bc702aa7a1ba08ede1ced1ba5090956927e1f554b68517cfadfab4e7002cbe7",
@@ -537,7 +536,8 @@
     "917612d5117aa0daea3dfe9d3b9e65044809ad8beb9b0590a08ace6a9f162b6f",
     "d906575b778967215ff274ff730bb9386db6c965c9395efbb560aca62d65c87e",
     "1a2c177afd3d39a78d3fdffe3ff611e4421c52e1f3294e11df422d86c9696d3d",
-    "d714efb3d976442c87338736002d5e8cda424ceac14a2df80d1cb213d9e29648"
+    "d714efb3d976442c87338736002d5e8cda424ceac14a2df80d1cb213d9e29648",
+    "cb8e8cfe86a0573a9334415ed70f11910eba9b492ed68321380d53e1b0b4cfdc"
   ],
   "_posted_topics": [
     [
@@ -604,7 +604,7 @@
   ],
   "_urgent_checked_id": {
     "Newz021": 64442,
-    "withyashar": 23079,
+    "withyashar": 23080,
     "pm_afshaa": 100702,
     "IranianMinds": 29022,
     "hutt_news": 5509,
