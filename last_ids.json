@@ -18,15 +18,15 @@
     "by_category": {
       "strange": 25,
       "random": 31,
-      "important": 149,
-      "war": 297,
+      "important": 150,
+      "war": 299,
       "funny": 7
     },
     "by_channel": {
       "Newz021": 33,
-      "withyashar": 246,
+      "withyashar": 248,
       "drtel": 17,
-      "Tala_Dollar_ir": 42,
+      "Tala_Dollar_ir": 43,
       "IranianMinds": 62,
       "pm_afshaa": 79,
       "nabe_saman": 9,
@@ -38,10 +38,6 @@
   },
   "Newz021": 64442,
   "_posted_hashes": [
-    "ff3f6e138bcaa56ea60287f55ad9421645b608da07066566ba598b6f7dd26d0c",
-    "a4c3877ec807f19cf9d2b9ef6735be64d539f6ec1ef124bb18bae7a51764b224",
-    "0bc702aa7a1ba08ede1ced1ba5090956927e1f554b68517cfadfab4e7002cbe7",
-    "665ad1d1e0e78c10f7598de28381aeb33b675057e6f89f6a19151b72c50504bc",
     "6b8309c3444902b0e23bd8b171dcc53e32a34cb570c32ea64f687395b2946553",
     "657c81880d3c81af3484e8f239bd620472f25007a529cf405c87def6767343f2",
     "d177d4b288eca33e958a77dcb275c84f281141a69ea200356385a5d1112ee499",
@@ -537,7 +533,11 @@
     "d906575b778967215ff274ff730bb9386db6c965c9395efbb560aca62d65c87e",
     "1a2c177afd3d39a78d3fdffe3ff611e4421c52e1f3294e11df422d86c9696d3d",
     "d714efb3d976442c87338736002d5e8cda424ceac14a2df80d1cb213d9e29648",
-    "cb8e8cfe86a0573a9334415ed70f11910eba9b492ed68321380d53e1b0b4cfdc"
+    "cb8e8cfe86a0573a9334415ed70f11910eba9b492ed68321380d53e1b0b4cfdc",
+    "a4d788b0541201a4c853c96de556947fbb45b6456f923c63a24a5d3f5feaf297",
+    "9656969fcf782ac5b74f9727878a005e4866a8ea34ddcaac79ab086e404dbbf4",
+    "2786f687efeed1c2f81d5b78952ad0dce86589cf268b0c1ea59e15ad269c6007",
+    "37bd77810dd9094946e43686cebadd8207683acfecc547d95a94248de6eb8e0c"
   ],
   "_posted_topics": [
     [
@@ -586,7 +586,7 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 23075,
+  "withyashar": 23082,
   "pm_afshaa": 100702,
   "IranianMinds": 29022,
   "hutt_news": 5509,
@@ -595,7 +595,7 @@
   "drtel": 66408,
   "nikotiinn_text": 15896,
   "nabe_saman": 26925,
-  "Tala_Dollar_ir": 3280,
+  "Tala_Dollar_ir": 3290,
   "SoccerrWorld": 7595,
   "_events": [],
   "_dead_gemini_keys": [
