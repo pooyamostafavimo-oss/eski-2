@@ -16,29 +16,26 @@
   "_stats": {
     "since": 1789482401.5669072,
     "by_category": {
-      "war": 48,
-      "important": 20,
+      "war": 49,
+      "important": 22,
       "strange": 4,
       "random": 9,
       "funny": 3
     },
     "by_channel": {
       "withyashar": 38,
-      "IranianMinds": 13,
-      "pm_afshaa": 20,
+      "IranianMinds": 14,
+      "pm_afshaa": 21,
       "Newz021": 5,
       "Tala_Dollar_ir": 3,
       "BadCandom": 1,
       "nabe_saman": 2,
-      "drtel": 1,
+      "drtel": 2,
       "FUTBALLI18": 1
     }
   },
   "Newz021": 64555,
   "_posted_hashes": [
-    "7074444cf5b0e89c97ec6b856e026e3f137a7a404d807fbfcbc32b4f6966b703",
-    "a703d303fb17b1d6574ff26bcd2057538ce20c57ae0d0f186f180efe756ca395",
-    "62d91356aed0a0fa74c5abeb32902df676a86b89be447aff763bfa081604e1ab",
     "5e89cf97402cb70dde1d4f0c8b6a1092b80dd87c56ca6051016b449936c2d859",
     "84bea8e4036b744ced782a6e499cc3070b2f7bb69d7615f65054a2a186b6c343",
     "60339ff166ae1c1fd54d9d7f1f1c3f530b389718610b831fc889abbb721a821a",
@@ -535,7 +532,10 @@
     "17c7fdc013cc763a2de674efbff78f37e0a1d2d0fec9987a796cf4fa4cf28970",
     "034ef3c104d1ca0a42878a2b6a0f29ba6fa8220a0980e4458382c9c9a059e29d",
     "2b3c27275c768a0637e78c843cfcba6d8ff348c3c027dfee3e91860060fadf48",
-    "25b8942caaa05c7e29462df1543391bef4eceb2e10fb2a18886406b89902e1a5"
+    "25b8942caaa05c7e29462df1543391bef4eceb2e10fb2a18886406b89902e1a5",
+    "8dc4a140900b72da53021227611c9bc0dffc7deb575899368b8481da7b94f94c",
+    "b7af99be061702b7bdb43410dfefbe58d585412d99d81c087685c2ceb2c105ba",
+    "eb18c464dfb572494a68cc01fc75722430438982f7693191079438edfac0ed87"
   ],
   "_posted_topics": [
     [
@@ -603,15 +603,15 @@
   "_urgent_checked_id": {
     "Newz021": 64555,
     "withyashar": 23318,
-    "pm_afshaa": 100857,
-    "IranianMinds": 29182,
+    "pm_afshaa": 100858,
+    "IranianMinds": 29185,
     "hutt_news": 5543,
     "BadCandom": 49770,
     "FUTBALLI18": 93412,
-    "drtel": 66538,
+    "drtel": 66539,
     "nikotiinn_text": 15933,
-    "nabe_saman": 27020,
+    "nabe_saman": 27022,
     "Tala_Dollar_ir": 3481,
-    "SoccerrWorld": 7788
+    "SoccerrWorld": 7789
   }
 }
