@@ -338,6 +338,26 @@ def record_post_stat(state: dict, category: str, channel: str) -> None:
     stats["by_channel"][channel] = stats["by_channel"].get(channel, 0) + 1
 
 
+# How long to keep an "event" record (each time something gets posted, a
+# small {"ts", "category", "channel"} dict is appended to state["_events"])
+# before it's pruned. Used for lightweight rate/volume tracking (e.g. by
+# urgent_scan.py's fast-track pass); safe to leave at its default.
+EVENTS_RETENTION_SECONDS = float(
+    os.environ.get("EVENTS_RETENTION_SECONDS", "").strip() or str(24 * 3600)
+)
+
+
+def prune_events(events: list, now: float) -> list:
+    """Drop event records older than EVENTS_RETENTION_SECONDS, so the
+    `_events` list kept in state doesn't grow without bound. Safe to call
+    with an empty or missing list (pass state.get("_events", "")[:0] or
+    just [])."""
+    if not events:
+        return []
+    cutoff = now - EVENTS_RETENTION_SECONDS
+    return [e for e in events if isinstance(e, dict) and e.get("ts", 0) >= cutoff]
+
+
 # Lines that are made up ONLY of a source-channel signature (a bare
 # @mention, a bare t.me link, "Forwarded from ...", "منبع: ...", a
 # "join our channel" plug, etc.) get dropped entirely. This is a safety
@@ -577,6 +597,104 @@ async def post_group(client: TelegramClient, group: list, final_text: str) -> No
         await _send()
 
 
+async def process_message_group(
+    client: TelegramClient,
+    channel: str,
+    group: list,
+    state: dict,
+    dead_keys: set,
+    events: list,
+    posted_hashes: list,
+    posted_hashes_set: set,
+) -> dict | None:
+    """Shared classify -> dedup -> post pipeline for one message/album
+    group. Both the full hourly run (_run, below) and urgent_scan.py's
+    fast-track pass call this same function, so the two never diverge in
+    what counts as relevant, how dedup works, or how a post is written
+    and sent.
+
+    `posted_hashes`/`posted_hashes_set` (exact-text dedup) are owned by
+    the caller and mutated in place, since urgent_scan.py and _run() need
+    to share the very same ones across a whole run. Topic-level dedup
+    (`_posted_topic_hashes`) and the event log (`events`) are tracked
+    inside `state` here, so callers don't need to manage them separately.
+
+    Returns the Gemini classification result dict (with at least
+    "category" and "action") if something was posted, or None if the
+    group was skipped (not relevant, duplicate, nothing left after
+    cleanup, or a Gemini/Telegram error).
+    """
+    if SKIP_VOICE_MESSAGES:
+        group = [m for m in group if not is_voice_message(m)]
+        if not group:
+            return None
+
+    source_text = next((m.text for m in group if m.text), "") or ""
+
+    try:
+        result = classify_with_gemini(source_text, dead_keys)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
+        return None
+    finally:
+        await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
+
+    if not result.get("relevant"):
+        return None
+
+    final_text = result.get("text") or source_text
+    final_text = strip_source_traces(final_text)
+
+    # If cleanup left no text and there's no media either, there's
+    # nothing worth posting.
+    if not final_text.strip() and not any(m.media for m in group):
+        print(f"[SKIP] Nothing left to post from {channel} after cleanup")
+        return None
+
+    # Topic-level duplicate check: catches the same real-world story
+    # reported with different wording across channels, which an
+    # exact-text hash would miss.
+    topic_key = (result.get("topic_key") or "").strip()
+    if topic_key and len(topic_key) > 3:
+        posted_topic_hashes = state.setdefault("_posted_topic_hashes", [])
+        th = content_hash(topic_key)
+        if th in posted_topic_hashes:
+            print(f"[SKIP] Same underlying story already posted "
+                  f"(topic match) from {channel}")
+            return None
+        posted_topic_hashes.append(th)
+        if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
+            del posted_topic_hashes[:-MAX_DEDUP_HASHES]
+        state["_posted_topic_hashes"] = posted_topic_hashes
+
+    # Exact-text duplicate check (skip very short/empty text, not useful
+    # for dedup and would collide too easily).
+    if final_text and len(final_text.strip()) > 15:
+        h = content_hash(final_text)
+        if h in posted_hashes_set:
+            print(f"[SKIP] Duplicate content from {channel}, already posted")
+            return None
+        posted_hashes_set.add(h)
+        posted_hashes.append(h)
+
+    try:
+        await post_group(client, group, final_text)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Failed to post a message from {channel}: {e}")
+        return None
+
+    record_post_stat(state, result.get("category", "unknown"), channel)
+    if events is not None:
+        events.append({
+            "ts": time.time(),
+            "category": result.get("category", "unknown"),
+            "channel": channel,
+        })
+    print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
+          f"from {channel}")
+    return result
+
+
 async def _run() -> None:
     if not SOURCE_CHANNELS:
         print("[ERROR] No SOURCE_CHANNELS configured. Set the env var (comma-separated).")
@@ -585,8 +703,7 @@ async def _run() -> None:
     state = load_state()
     posted_hashes = state.get("_posted_hashes", [])
     posted_hashes_set = set(posted_hashes)
-    posted_topic_hashes = state.get("_posted_topic_hashes", [])
-    posted_topic_hashes_set = set(posted_topic_hashes)
+    events = prune_events(state.get("_events", []), time.time())
     channel_fail_counts = state.setdefault("_channel_fail_counts", {})
     alerted_channels = set(state.get("_alerted_dead_channels", []))
     dead_keys = set(state.get("_dead_gemini_keys", []))
@@ -648,67 +765,10 @@ async def _run() -> None:
         groups = group_albums(raw_messages)
 
         for group in groups:
-            # Belt-and-braces: drop any voice note that slipped into a group.
-            if SKIP_VOICE_MESSAGES:
-                group = [m for m in group if not is_voice_message(m)]
-                if not group:
-                    continue
-
-            # Use the first non-empty caption/text found in the group.
-            source_text = next((m.text for m in group if m.text), "") or ""
-
-            try:
-                result = classify_with_gemini(source_text, dead_keys)
-            except Exception as e:  # noqa: BLE001
-                print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
-                continue
-            finally:
-                await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
-
-            if not result.get("relevant"):
-                continue
-
-            final_text = result.get("text") or source_text
-            final_text = strip_source_traces(final_text)
-
-            # If cleanup left no text and there's no media either, there's
-            # nothing worth posting.
-            if not final_text.strip() and not any(m.media for m in group):
-                print(f"[SKIP] Nothing left to post from {channel} after cleanup")
-                continue
-
-            # Topic-level duplicate check: catches the same real-world
-            # story reported with different wording across channels,
-            # which an exact-text hash would miss.
-            topic_key = (result.get("topic_key") or "").strip()
-            if topic_key and len(topic_key) > 3:
-                th = content_hash(topic_key)
-                if th in posted_topic_hashes_set:
-                    print(f"[SKIP] Same underlying story already posted "
-                          f"(topic match) from {channel}")
-                    continue
-                posted_topic_hashes_set.add(th)
-                posted_topic_hashes.append(th)
-
-            # Exact-text duplicate check (skip very short/empty text, not
-            # useful for dedup and would collide too easily).
-            if final_text and len(final_text.strip()) > 15:
-                h = content_hash(final_text)
-                if h in posted_hashes_set:
-                    print(f"[SKIP] Duplicate content from {channel}, already posted")
-                    continue
-                posted_hashes_set.add(h)
-                posted_hashes.append(h)
-
-            try:
-                await post_group(client, group, final_text)
-            except Exception as e:  # noqa: BLE001
-                print(f"[WARN] Failed to post a message from {channel}: {e}")
-                continue
-
-            record_post_stat(state, result.get("category", "unknown"), channel)
-            print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
-                  f"from {channel}")
+            await process_message_group(
+                client, channel, group, state, dead_keys, events,
+                posted_hashes, posted_hashes_set,
+            )
 
         state[channel] = newest_seen
 
@@ -716,10 +776,8 @@ async def _run() -> None:
         # doesn't lose all progress from channels already finished.
         if len(posted_hashes) > MAX_DEDUP_HASHES:
             posted_hashes = posted_hashes[-MAX_DEDUP_HASHES:]
-        if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
-            posted_topic_hashes = posted_topic_hashes[-MAX_DEDUP_HASHES:]
         state["_posted_hashes"] = posted_hashes
-        state["_posted_topic_hashes"] = posted_topic_hashes
+        state["_events"] = prune_events(events, time.time())
         state["_dead_gemini_keys"] = sorted(dead_keys)
         state["_channel_fail_counts"] = channel_fail_counts
         state["_alerted_dead_channels"] = sorted(alerted_channels)
