@@ -16,15 +16,15 @@
   "_stats": {
     "since": 1789482401.5669072,
     "by_category": {
-      "war": 37,
-      "important": 14,
+      "war": 38,
+      "important": 15,
       "strange": 2,
       "random": 8,
       "funny": 3
     },
     "by_channel": {
-      "withyashar": 29,
-      "IranianMinds": 11,
+      "withyashar": 30,
+      "IranianMinds": 12,
       "pm_afshaa": 18,
       "Newz021": 2,
       "Tala_Dollar_ir": 2,
@@ -34,8 +34,6 @@
   },
   "Newz021": 64525,
   "_posted_hashes": [
-    "f98de494b0c0d255ef0289ca9de40d6a9c3019d952072635550c261ff3540c3f",
-    "77680599fd68bc9b5239f734bdfb0107d5a0f0d548d0b8f66a34922c5ec65b4a",
     "2dde8ea8c5045a85e5e6e812aff21ca5718a0163591bd17a23d499b8c4f1c47d",
     "e09abef2dc8905b9b12557ff06e4205cff38488418c6daad74a121f5f28032f2",
     "1333c3b5ac3b26fde183d7db2808f64403e188e8cdd33332b2150f2fb536433c",
@@ -533,7 +531,9 @@
     "86ed58f4400db11eff162523e5fbcc0f3b1f2f6ff90f92984a327c07442e460b",
     "6f208f237fcb0fc7edd95524dfef33d8aff14244937da04273e01dc4d0764a8b",
     "40e54f4ca74408717f6b5854e700dff706716265fe50fcf2aec9ce7dc9ae865c",
-    "fd9aab018275b051182da4fabd0b4100952e6c51281111f291190cc6bd5507e4"
+    "fd9aab018275b051182da4fabd0b4100952e6c51281111f291190cc6bd5507e4",
+    "00e5280182fa8d17aa61c09e021974c3acbfb4020d11407eac2a577349dcfdcb",
+    "44b26d21964fa3a146f63efe2da1328e145a35f7bcece15af8af7f28b7c178fa"
   ],
   "_posted_topics": [
     [
@@ -600,16 +600,16 @@
   ],
   "_urgent_checked_id": {
     "Newz021": 64540,
-    "withyashar": 23269,
-    "pm_afshaa": 100832,
-    "IranianMinds": 29159,
+    "withyashar": 23271,
+    "pm_afshaa": 100833,
+    "IranianMinds": 29160,
     "hutt_news": 5536,
-    "BadCandom": 49755,
+    "BadCandom": 49757,
     "FUTBALLI18": 93397,
     "drtel": 66519,
     "nikotiinn_text": 15919,
     "nabe_saman": 27004,
-    "Tala_Dollar_ir": 3450,
-    "SoccerrWorld": 7756
+    "Tala_Dollar_ir": 3451,
+    "SoccerrWorld": 7757
   }
 }
