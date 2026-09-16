@@ -16,13 +16,13 @@
   "_stats": {
     "since": 1789482401.5669072,
     "by_category": {
-      "war": 7,
+      "war": 8,
       "important": 1,
       "strange": 1,
       "random": 3
     },
     "by_channel": {
-      "withyashar": 8,
+      "withyashar": 9,
       "IranianMinds": 1,
       "pm_afshaa": 1,
       "Newz021": 2
@@ -30,7 +30,6 @@
   },
   "Newz021": 64525,
   "_posted_hashes": [
-    "d9ad3b2696730782599f4c1d950fe855238d9551a1b91fa855a0e2df2484482d",
     "457be58e067f6863f56e67bd6e5df49eefd8dcd9913aa4187838de90fd9af545",
     "79a62e64bf82c9103bed4f961fba58f90b89fdefb9df735568fd894328887163",
     "8d811e36b542316b5f7fd6a372c90b0929f572bac1e79f1d92d7e64de3eec29d",
@@ -529,7 +528,8 @@
     "ae7763d3ca35c6c81f3ab0d21b833ce705adf51e7753715af21d43ad8dea9738",
     "8084250bb927f73cb486fbd1da60d29fe53f951427bca1d18eebcd23bbfa0163",
     "05ca8ed8d28d2518149c0e62e5aa7674be6b9cbac11820f950020efc30483c24",
-    "cab8fea36996857d6b4c41691fd5a942e785215450e296c61e0568e3d540d058"
+    "cab8fea36996857d6b4c41691fd5a942e785215450e296c61e0568e3d540d058",
+    "e27fa9a1c57c7fda76dd725b178bf5eb10a0e744fbe514a619f97b4db0f28745"
   ],
   "_posted_topics": [
     [
@@ -596,7 +596,7 @@
   ],
   "_urgent_checked_id": {
     "Newz021": 64525,
-    "withyashar": 23244,
+    "withyashar": 23245,
     "pm_afshaa": 100810,
     "IranianMinds": 29130,
     "hutt_news": 5536,
