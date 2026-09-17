@@ -635,76 +635,95 @@ async def process_message_group(
     "category" and "action") if something was posted, or None if the
     group was skipped (not relevant, duplicate, nothing left after
     cleanup, or a Gemini/Telegram error).
+
+    Never raises: any unexpected error is caught, logged, and treated as
+    "nothing posted" so one bad message can't crash the whole run — both
+    _run() and urgent_scan.py call this in a loop with no try/except of
+    their own around it.
     """
     if SKIP_VOICE_MESSAGES:
         group = [m for m in group if not is_voice_message(m)]
         if not group:
             return None
 
-    source_text = next((m.text for m in group if m.text), "") or ""
-
     try:
-        result = classify_with_gemini(source_text, dead_keys)
-    except Exception as e:  # noqa: BLE001
-        print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
-        return None
-    finally:
-        await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
+        source_text = next((m.text for m in group if m.text), "") or ""
 
-    if not result.get("relevant"):
-        return None
+        try:
+            result = classify_with_gemini(source_text, dead_keys)
+        except Exception as e:  # noqa: BLE001
+            print(f"[WARN] Gemini call failed for a message in {channel}: {e}")
+            return None
+        finally:
+            await asyncio.sleep(GEMINI_CALL_DELAY_SECONDS)
 
-    final_text = result.get("text") or source_text
-    final_text = strip_source_traces(final_text)
+        # Gemini is asked to return a JSON object, but a model can in
+        # principle answer with something else (a bare string/array) that
+        # still parses as valid JSON - guard against that instead of
+        # crashing on the .get() calls below.
+        if not isinstance(result, dict) or not result.get("relevant"):
+            return None
 
-    # If cleanup left no text and there's no media either, there's
-    # nothing worth posting.
-    if not final_text.strip() and not any(m.media for m in group):
-        print(f"[SKIP] Nothing left to post from {channel} after cleanup")
-        return None
+        final_text = result.get("text") or source_text
+        final_text = strip_source_traces(final_text)
 
-    # Topic-level duplicate check: catches the same real-world story
-    # reported with different wording across channels, which an
-    # exact-text hash would miss.
-    topic_key = (result.get("topic_key") or "").strip()
-    if topic_key and len(topic_key) > 3:
+        # If cleanup left no text and there's no media either, there's
+        # nothing worth posting.
+        if not final_text.strip() and not any(m.media for m in group):
+            print(f"[SKIP] Nothing left to post from {channel} after cleanup")
+            return None
+
+        # Work out the dedup keys up front, but DON'T commit them yet -
+        # only after a successful post below. Marking something as
+        # "already posted" before it's actually posted means a failed
+        # send (network hiccup, FloodWait, etc.) would permanently burn
+        # that topic/text and it would never be retried, even from a
+        # different source channel.
+        topic_key = (result.get("topic_key") or "").strip()
         posted_topic_hashes = state.setdefault("_posted_topic_hashes", [])
-        th = content_hash(topic_key)
-        if th in posted_topic_hashes:
+        th = content_hash(topic_key) if topic_key and len(topic_key) > 3 else None
+        if th and th in posted_topic_hashes:
             print(f"[SKIP] Same underlying story already posted "
                   f"(topic match) from {channel}")
             return None
-        posted_topic_hashes.append(th)
-        if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
-            del posted_topic_hashes[:-MAX_DEDUP_HASHES]
-        state["_posted_topic_hashes"] = posted_topic_hashes
 
-    # Exact-text duplicate check (skip very short/empty text, not useful
-    # for dedup and would collide too easily).
-    if final_text and len(final_text.strip()) > 15:
-        h = content_hash(final_text)
-        if h in posted_hashes_set:
+        # Exact-text duplicate check (skip very short/empty text, not
+        # useful for dedup and would collide too easily).
+        h = content_hash(final_text) if final_text and len(final_text.strip()) > 15 else None
+        if h and h in posted_hashes_set:
             print(f"[SKIP] Duplicate content from {channel}, already posted")
             return None
-        posted_hashes_set.add(h)
-        posted_hashes.append(h)
 
-    try:
-        await post_group(client, group, final_text)
+        try:
+            await post_group(client, group, final_text)
+        except Exception as e:  # noqa: BLE001
+            print(f"[WARN] Failed to post a message from {channel}: {e}")
+            return None
+
+        # Only now that the post actually went out do we commit the
+        # dedup markers and stats.
+        if th:
+            posted_topic_hashes.append(th)
+            if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
+                del posted_topic_hashes[:-MAX_DEDUP_HASHES]
+            state["_posted_topic_hashes"] = posted_topic_hashes
+        if h:
+            posted_hashes_set.add(h)
+            posted_hashes.append(h)
+
+        record_post_stat(state, result.get("category", "unknown"), channel)
+        if events is not None:
+            events.append({
+                "ts": time.time(),
+                "category": result.get("category", "unknown"),
+                "channel": channel,
+            })
+        print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
+              f"from {channel}")
+        return result
     except Exception as e:  # noqa: BLE001
-        print(f"[WARN] Failed to post a message from {channel}: {e}")
+        print(f"[WARN] Unexpected error processing a message from {channel}: {e}")
         return None
-
-    record_post_stat(state, result.get("category", "unknown"), channel)
-    if events is not None:
-        events.append({
-            "ts": time.time(),
-            "category": result.get("category", "unknown"),
-            "channel": channel,
-        })
-    print(f"[OK] Posted ({result.get('category')}/{result.get('action')}) "
-          f"from {channel}")
-    return result
 
 
 async def _run() -> None:
@@ -755,6 +774,11 @@ async def _run() -> None:
         except FloodWaitError as e:
             print(f"[INFO] FloodWait while reading {channel}: sleeping {e.seconds}s")
             await asyncio.sleep(e.seconds + 1)
+            # Don't process/commit whatever partial batch we managed to
+            # read before the FloodWait hit: state[channel] is left
+            # untouched, so the next run re-reads this channel from the
+            # same last_id and nothing in between is silently skipped.
+            continue
         except Exception as e:  # noqa: BLE001
             print(f"[WARN] Failed to read {channel}: {e}")
             channel_fail_counts[channel] = channel_fail_counts.get(channel, 0) + 1
