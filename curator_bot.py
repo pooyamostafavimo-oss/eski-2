@@ -73,6 +73,7 @@ import asyncio
 import hashlib
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -140,6 +141,15 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 
 # Delay between Gemini calls, to stay under free-tier requests-per-minute caps.
 GEMINI_CALL_DELAY_SECONDS = float(os.environ.get("GEMINI_CALL_DELAY_SECONDS", "4"))
+
+# Random extra delay AFTER each successful post (on top of the Gemini-call
+# delay above), so posts don't land at suspiciously mechanical, perfectly
+# even intervals. Both default to 0 (disabled) if not set - safe no-op
+# unless you actually configure them.
+POST_GAP_MIN_SECONDS = float(os.environ.get("POST_GAP_MIN_SECONDS", "0") or "0")
+POST_GAP_MAX_SECONDS = float(os.environ.get("POST_GAP_MAX_SECONDS", "0") or "0")
+if POST_GAP_MAX_SECONDS < POST_GAP_MIN_SECONDS:
+    POST_GAP_MAX_SECONDS = POST_GAP_MIN_SECONDS
 
 # Source channels to curate from (usernames, no @ needed but both work).
 # Hardcoded defaults below; can still be overridden with the SOURCE_CHANNELS
@@ -625,11 +635,13 @@ async def process_message_group(
     what counts as relevant, how dedup works, or how a post is written
     and sent.
 
-    `posted_hashes`/`posted_hashes_set` (exact-text dedup) are owned by
-    the caller and mutated in place, since urgent_scan.py and _run() need
-    to share the very same ones across a whole run. Topic-level dedup
-    (`_posted_topic_hashes`) and the event log (`events`) are tracked
-    inside `state` here, so callers don't need to manage them separately.
+    `posted_hashes`/`posted_hashes_set` (exact-text dedup, on the FINAL
+    posted text) are owned by the caller and mutated in place, since
+    urgent_scan.py and _run() need to share the very same ones across a
+    whole run. Topic-level dedup (`_posted_topic_hashes`), source-text
+    dedup (`_posted_source_hashes`), and the event log (`events`) are
+    tracked inside `state` here, so callers don't need to manage them
+    separately.
 
     Returns the Gemini classification result dict (with at least
     "category" and "action") if something was posted, or None if the
@@ -648,6 +660,27 @@ async def process_message_group(
 
     try:
         source_text = next((m.text for m in group if m.text), "") or ""
+
+        # Dedup on the ORIGINAL, deterministic source text before we even
+        # call Gemini. This is what actually catches the same message
+        # being processed twice - most importantly urgent_scan.py
+        # fast-tracking a message and this full hourly run reprocessing
+        # that exact same message later. The final_text/topic_key hashes
+        # further down can't be relied on for that: Gemini's rewriting is
+        # non-deterministic, so classifying the same source text twice
+        # can produce slightly different output text/topic_key each time,
+        # which would slip past those hashes and post the same story
+        # twice. Checking the source text up front also saves a Gemini
+        # call entirely for a message we already know we've posted.
+        posted_source_hashes = state.setdefault("_posted_source_hashes", [])
+        source_hash = (
+            content_hash(source_text)
+            if source_text and len(source_text.strip()) > 15 else None
+        )
+        if source_hash and source_hash in posted_source_hashes:
+            print(f"[SKIP] This exact source message was already "
+                  f"processed/posted from {channel}")
+            return None
 
         try:
             result = classify_with_gemini(source_text, dead_keys)
@@ -700,8 +733,16 @@ async def process_message_group(
             print(f"[WARN] Failed to post a message from {channel}: {e}")
             return None
 
+        if POST_GAP_MAX_SECONDS > 0:
+            await asyncio.sleep(random.uniform(POST_GAP_MIN_SECONDS, POST_GAP_MAX_SECONDS))
+
         # Only now that the post actually went out do we commit the
         # dedup markers and stats.
+        if source_hash:
+            posted_source_hashes.append(source_hash)
+            if len(posted_source_hashes) > MAX_DEDUP_HASHES:
+                del posted_source_hashes[:-MAX_DEDUP_HASHES]
+            state["_posted_source_hashes"] = posted_source_hashes
         if th:
             posted_topic_hashes.append(th)
             if len(posted_topic_hashes) > MAX_DEDUP_HASHES:
