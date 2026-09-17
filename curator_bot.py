@@ -402,21 +402,33 @@ def _mask_key(key: str) -> str:
     return f"...{key[-4:]}" if len(key) > 4 else "****"
 
 
+def _hash_key(key: str) -> str:
+    """One-way hash of an API key, safe to persist to last_ids.json (which
+    gets committed to git). We only ever need to check *whether* a given
+    key is the same one that was already marked dead - never to recover
+    the key itself - so a hash is all state needs to store. Never put a
+    raw key into `state`/the JSON file; GitHub's push protection will
+    (rightly) block the commit, and worse, it'd leak the key into git
+    history."""
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+
 def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
     """Try each still-usable Gemini key in round-robin order.
 
     - On 429 (rate limit) the key is just skipped for this call — it's
       still usable later.
     - On a 400/401/403 that indicates an invalid, revoked, or expired
-      API key, the key is added to `dead_keys` (mutated in place) and
-      never tried again, in this run or future ones (the caller persists
-      `dead_keys` to last_ids.json).
+      API key, the key's HASH is added to `dead_keys` (mutated in place,
+      set of sha256 hashes - never raw keys) and never tried again, in
+      this run or future ones (the caller persists `dead_keys` to
+      last_ids.json, which is safe since it never holds real keys).
 
     Returns a safe default (not relevant) if every usable key fails.
     """
     global _key_cursor
 
-    active_keys = [k for k in GEMINI_API_KEYS if k not in dead_keys]
+    active_keys = [k for k in GEMINI_API_KEYS if _hash_key(k) not in dead_keys]
     if not active_keys:
         print("[ERROR] No usable Gemini keys left — all are disabled as "
               "invalid/expired. Add a new key to GEMINI_API_KEYS.")
@@ -479,7 +491,7 @@ def classify_with_gemini(message_text: str, dead_keys: set) -> dict:
                 print(f"[WARN] Gemini key {_mask_key(key)} looks invalid/expired "
                       f"({err_status or resp.status_code}: {err_msg[:120]}); "
                       f"disabling it permanently.")
-                dead_keys.add(key)
+                dead_keys.add(_hash_key(key))
             else:
                 print(f"[WARN] Gemini call failed: {resp.status_code} {err_msg[:200]}")
             continue
@@ -520,7 +532,7 @@ def preflight_check_keys(dead_keys: set) -> None:
         "generationConfig": {"temperature": 0, "maxOutputTokens": 5},
     }
     for key in list(GEMINI_API_KEYS):
-        if key in dead_keys:
+        if _hash_key(key) in dead_keys:
             continue
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
@@ -542,7 +554,7 @@ def preflight_check_keys(dead_keys: set) -> None:
                     or "api key" in err_msg.lower()):
                 print(f"[WARN] Preflight: Gemini key {_mask_key(key)} is "
                       f"invalid/expired; disabling it before the run starts.")
-                dead_keys.add(key)
+                dead_keys.add(_hash_key(key))
 
 
 def group_albums(messages):
