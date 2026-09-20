@@ -17,17 +17,17 @@
     "since": 1789482401.5669072,
     "by_category": {
       "war": 68,
-      "important": 51,
+      "important": 52,
       "strange": 8,
-      "random": 12,
+      "random": 13,
       "funny": 8
     },
     "by_channel": {
       "withyashar": 58,
       "IranianMinds": 22,
       "pm_afshaa": 30,
-      "Newz021": 15,
-      "Tala_Dollar_ir": 12,
+      "Newz021": 16,
+      "Tala_Dollar_ir": 13,
       "BadCandom": 1,
       "nabe_saman": 3,
       "drtel": 2,
@@ -35,9 +35,8 @@
       "SoccerrWorld": 1
     }
   },
-  "Newz021": 64705,
+  "Newz021": 64707,
   "_posted_hashes": [
-    "997e148be84634039579716fdd477c0f15b1ab27b0e8db69b63ca21286d67b65",
     "9e1b6a6698aed916da61ce5817b7348007142ae48e4358f30a06fff403b4c009",
     "f0b6df862dbac3d8c9e008d7e82e614755ad8274528f6fe6b8f3c90441ba4445",
     "6ede51cb2374be92db76c860e61be87b684f1be438b2df7ee0531efabfb9babb",
@@ -536,10 +535,11 @@
     "51945919b985044483beca7383ba69a11b9a3ad95688c16d5df60f6e18a54390",
     "9e587709697f896b95996b0a9a097c3d4221b535f60258782b768b894e2499dc",
     "1c711a388e30f7f1039444510cedadc7d167daad9639e96bc5c7a658c5a39161",
-    "33d9d54f9a8bad9f9c7a3b2b4c6acb8f67b57f417085a0b2fadc8594c90d4e78"
+    "33d9d54f9a8bad9f9c7a3b2b4c6acb8f67b57f417085a0b2fadc8594c90d4e78",
+    "754dd98bad6bfe5d68f69ec609414b5abffa05047cee87f3bfe35e97fe04c322"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 23562,
+  "withyashar": 23566,
   "pm_afshaa": 101049,
   "IranianMinds": 29362,
   "hutt_news": 5577,
@@ -548,39 +548,9 @@
   "drtel": 66682,
   "nikotiinn_text": 15981,
   "nabe_saman": 27115,
-  "Tala_Dollar_ir": 3695,
+  "Tala_Dollar_ir": 3703,
   "SoccerrWorld": 7990,
   "_events": [
-    {
-      "ts": 1789790123.2146504,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789790147.2470767,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789790156.9303124,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789790169.9638298,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
-    {
-      "ts": 1789790185.5279176,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
-    {
-      "ts": 1789790209.8325784,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
     {
       "ts": 1789803923.5701618,
       "category": "war",
@@ -810,6 +780,16 @@
       "ts": 1789862345.5597303,
       "category": "important",
       "channel": "Tala_Dollar_ir"
+    },
+    {
+      "ts": 1789877941.8115315,
+      "category": "random",
+      "channel": "Newz021"
+    },
+    {
+      "ts": 1789877980.4508622,
+      "category": "important",
+      "channel": "Tala_Dollar_ir"
     }
   ],
   "_dead_gemini_keys": [
@@ -875,7 +855,8 @@
     "f291451a1e465b7406ba81ae3bd5e713ac5cbb5dbe25a8d0fa560a0392cd39e9",
     "6cab4a7de187b8503610f15d28f778de25eff94f7e24e3a29a46cdc51beda5dc",
     "d56764e3135f527c7042d146a9ddd668d6530119704541bc07fae4db783ce525",
-    "7d8e703fa01b2050a432d93e7c31e13d81d990bb1fe6ac1682e5b4d12b8d4331"
+    "7d8e703fa01b2050a432d93e7c31e13d81d990bb1fe6ac1682e5b4d12b8d4331",
+    "fb186c163eea8164ee1af13d5022fc53ba32babed02b9849748229ebf7b53d87"
   ],
   "_posted_topic_hashes": [
     "1cc7042ed519ccee3063eaa8b72eb96ac368fa6bf65c576fede1f27feb19b839",
@@ -936,6 +917,7 @@
     "6a77b5743f81389e29781f85024ffbcf9dd24bc9032885014eddeeccbc9588ef",
     "14a8b7494c8e558841cdd88129d35d74dd95b32e968df07be6104c703e69c937",
     "7ecf82be719e810d44a71f4f8de705070f4144e173a40293bea9c4da35b2b3a6",
-    "5178aef6a9bbd21a1c9ff50e5c22e58c6fadf74471de7feaa2e19fbc4a61f3c4"
+    "5178aef6a9bbd21a1c9ff50e5c22e58c6fadf74471de7feaa2e19fbc4a61f3c4",
+    "623d38766730a611d3141e50288bd174f363d5ee6485ae56bebc039dc3dd31b0"
   ]
 }
