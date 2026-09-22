@@ -36,7 +36,7 @@
       "hutt_news": 1
     }
   },
-  "Newz021": 64770,
+  "Newz021": 64782,
   "_posted_hashes": [
     "cfc159364833374081e664ff2fdd9fcfac35f741e890b2c920fd0c051d8284e2",
     "23c61434ca9e5904fe5704ca446d89be180c157f2b80e8e032deb614ec0563fc",
@@ -540,203 +540,18 @@
     "1da5a17bb4d8352f09bc5a4e98a2e4715cb333737e0ee99a0b759cbb8506ddfe"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 23769,
-  "pm_afshaa": 101177,
-  "IranianMinds": 29531,
+  "withyashar": 23795,
+  "pm_afshaa": 101195,
+  "IranianMinds": 29548,
   "hutt_news": 5601,
-  "BadCandom": 49948,
-  "FUTBALLI18": 93846,
-  "drtel": 66781,
+  "BadCandom": 49968,
+  "FUTBALLI18": 93861,
+  "drtel": 66790,
   "nikotiinn_text": 16013,
-  "nabe_saman": 27170,
-  "Tala_Dollar_ir": 3830,
-  "SoccerrWorld": 8125,
+  "nabe_saman": 27177,
+  "Tala_Dollar_ir": 3848,
+  "SoccerrWorld": 8139,
   "_events": [
-    {
-      "ts": 1789979494.0923407,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1789979532.0558636,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979552.980831,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979563.840374,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979577.0640135,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979589.05197,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979598.5159643,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979614.0029643,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979662.3591716,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979698.3784604,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979723.708813,
-      "category": "strange",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1789979737.9151464,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979765.8862426,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979778.6675901,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979792.1041434,
-      "category": "strange",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979808.1459095,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979819.6007693,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979854.4366333,
-      "category": "strange",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979865.748012,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979879.0061524,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979895.1046717,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979908.9179735,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979920.4461014,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1789979986.716933,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789979996.5078044,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980022.447545,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980032.7462223,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980090.115677,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980132.349987,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980146.4983685,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980158.8542922,
-      "category": "random",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980200.1858401,
-      "category": "funny",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980213.2382329,
-      "category": "war",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1789980231.285869,
-      "category": "strange",
-      "channel": "hutt_news"
-    },
-    {
-      "ts": 1789980268.6340783,
-      "category": "important",
-      "channel": "BadCandom"
-    },
-    {
-      "ts": 1789980350.6534436,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
-    {
-      "ts": 1789980379.498796,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
     {
       "ts": 1790021727.018753,
       "category": "random",
