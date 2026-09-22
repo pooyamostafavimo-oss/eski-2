@@ -14,29 +14,11 @@
     "SoccerrWorld": 0
   },
   "_stats": {
-    "since": 1789482401.5669072,
-    "by_category": {
-      "war": 133,
-      "important": 103,
-      "strange": 15,
-      "random": 19,
-      "funny": 13
-    },
-    "by_channel": {
-      "withyashar": 94,
-      "IranianMinds": 49,
-      "pm_afshaa": 62,
-      "Newz021": 31,
-      "Tala_Dollar_ir": 25,
-      "BadCandom": 6,
-      "nabe_saman": 8,
-      "drtel": 3,
-      "FUTBALLI18": 3,
-      "SoccerrWorld": 1,
-      "hutt_news": 1
-    }
+    "since": 1790100398.4494214,
+    "by_category": {},
+    "by_channel": {}
   },
-  "Newz021": 64782,
+  "Newz021": 64790,
   "_posted_hashes": [
     "cfc159364833374081e664ff2fdd9fcfac35f741e890b2c920fd0c051d8284e2",
     "23c61434ca9e5904fe5704ca446d89be180c157f2b80e8e032deb614ec0563fc",
@@ -540,17 +522,17 @@
     "1da5a17bb4d8352f09bc5a4e98a2e4715cb333737e0ee99a0b759cbb8506ddfe"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 23795,
-  "pm_afshaa": 101195,
-  "IranianMinds": 29548,
-  "hutt_news": 5601,
-  "BadCandom": 49968,
-  "FUTBALLI18": 93861,
-  "drtel": 66790,
-  "nikotiinn_text": 16013,
-  "nabe_saman": 27177,
-  "Tala_Dollar_ir": 3848,
-  "SoccerrWorld": 8139,
+  "withyashar": 23828,
+  "pm_afshaa": 101210,
+  "IranianMinds": 29577,
+  "hutt_news": 5609,
+  "BadCandom": 49977,
+  "FUTBALLI18": 93870,
+  "drtel": 66799,
+  "nikotiinn_text": 16022,
+  "nabe_saman": 27183,
+  "Tala_Dollar_ir": 3856,
+  "SoccerrWorld": 8154,
   "_events": [
     {
       "ts": 1790021727.018753,
