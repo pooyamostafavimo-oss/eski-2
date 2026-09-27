@@ -17,8 +17,8 @@
     "since": 1790100398.4494214,
     "by_category": {
       "strange": 4,
-      "war": 57,
-      "funny": 7,
+      "war": 58,
+      "funny": 8,
       "important": 46,
       "random": 9
     },
@@ -26,8 +26,8 @@
       "Newz021": 10,
       "withyashar": 48,
       "pm_afshaa": 25,
-      "IranianMinds": 16,
-      "BadCandom": 2,
+      "IranianMinds": 17,
+      "BadCandom": 3,
       "nabe_saman": 4,
       "Tala_Dollar_ir": 12,
       "SoccerrWorld": 2,
@@ -37,8 +37,6 @@
   },
   "Newz021": 64966,
   "_posted_hashes": [
-    "8fc192d799be30a41b81e7738da9f57169fa8906c01e4fe9fcc1e51f27a554f7",
-    "b36345270ff0df7d6b901f9f082a939ead0dbaa6cf8682be1cec85c71215a538",
     "6e2a27892900a0444874f857df379c11e9f5e4f26ecee0f8c198bd3637b50c38",
     "43976e11fe52881f345cd5130127b723f83423131c5384e329136e0738409ea9",
     "e8fe9c377543d3a662ea920a9e5dfce61d6a38d85eb329c1baaf0c4a10d1e8c7",
@@ -536,19 +534,21 @@
     "5297770c909c7b556673528f77a89da5b492d0db4caefca8d89001ca7f9484e2",
     "72c7bb8c31ca99e8547c74a04a9141d1437d478bc9e1e4852c4e63e756c1d91a",
     "e38976e7f2d872c1216b6f5855fc8169f20ca9a2f41f19c40bc9d432d9928aef",
-    "926bdbe0305a4b9fb211b15a120469e696c145e59fbe0068d768427823d48306"
+    "926bdbe0305a4b9fb211b15a120469e696c145e59fbe0068d768427823d48306",
+    "4e48ef6ab41e528682c2574714d11133c1971e972a04e312227af5c124141cb6",
+    "2ef288167182b4842b9dd3de3b3980817844b43ad4e67e46c574ecfc221bd0a8"
   ],
   "_alerted_dead_channels": [],
   "withyashar": 24299,
   "pm_afshaa": 101454,
-  "IranianMinds": 29819,
+  "IranianMinds": 29822,
   "hutt_news": 5673,
-  "BadCandom": 50162,
+  "BadCandom": 50163,
   "FUTBALLI18": 94143,
   "drtel": 66998,
   "nikotiinn_text": 16105,
   "nabe_saman": 27325,
-  "Tala_Dollar_ir": 4125,
+  "Tala_Dollar_ir": 4126,
   "SoccerrWorld": 8375,
   "_events": [
     {
@@ -770,6 +770,16 @@
       "ts": 1790464975.9185832,
       "category": "war",
       "channel": "withyashar"
+    },
+    {
+      "ts": 1790468399.139083,
+      "category": "war",
+      "channel": "IranianMinds"
+    },
+    {
+      "ts": 1790468410.2873514,
+      "category": "funny",
+      "channel": "BadCandom"
     }
   ],
   "_dead_gemini_keys": [
@@ -1089,7 +1099,9 @@
     "f25f1cd8a22b0d0e9a8109022b9b1d6eb0bf3f8c5cc7b807f94806ef53fedd61",
     "d72f3328f3a3f5be1d9f889d181d51cb00c5f2a9a06c2d96844cc8563af8e131",
     "e6afccdfcf95cf273324870d3e7ff002aeed47a36291bd547168ccf9db0f5bf4",
-    "3b7204dcdea6c2637941b63ca2a4060ae36aa2529b3b35c9319125aede97cf11"
+    "3b7204dcdea6c2637941b63ca2a4060ae36aa2529b3b35c9319125aede97cf11",
+    "7e6fe3ec8f1c3da46a20871f4ca4fb92867a761427dea005075fadbe68870854",
+    "6f1eba040287f57cb214f3678ea2f770a453235cea5649c6e03f6dbce95c7721"
   ],
   "_posted_topic_hashes": [
     "1cc7042ed519ccee3063eaa8b72eb96ac368fa6bf65c576fede1f27feb19b839",
@@ -1404,6 +1416,8 @@
     "0df06f7dd6ff1e8bbb17c188e1f28256fe140a81eb05e247f22cdbfab49c05e9",
     "fb5c8715840bf48e7cb76dfba2276607314621160aebfc092243e5b482139633",
     "88226408cb7536be680fb50d85d9049c9deede3fdfc6378a2ebf0469341986ba",
-    "14fda8f9753d7024e88e41cd480db4d26d96b1471e303ee2d2b6c70979de1520"
+    "14fda8f9753d7024e88e41cd480db4d26d96b1471e303ee2d2b6c70979de1520",
+    "aa569cde42743af7d96f7ef2a7e0a6a1bfde566aafa0afffa1be924a6db0eaa0",
+    "ab9024a4ed67b5a806e345ec3f2bd4117e4f85c3a2fe2408be61f6004acff5e4"
   ]
 }
