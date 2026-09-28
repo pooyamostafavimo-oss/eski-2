@@ -35,7 +35,7 @@
       "drtel": 1
     }
   },
-  "Newz021": 65015,
+  "Newz021": 65037,
   "_posted_hashes": [
     "b915fbf3f3d251a66ac1bf1666ce9bb737aca1be8e6e27b537d04d68b25795ff",
     "db0f0fa6bafb59a0c25c66fc0c7feae81343b0a4e1a81a1211b1d8807f98059f",
@@ -539,23 +539,18 @@
     "b29e85740100bf4b47ddfb26f021205bf2acaf6bad3bc516f00a45b253efcb07"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 24390,
-  "pm_afshaa": 101524,
-  "IranianMinds": 29887,
-  "hutt_news": 5687,
-  "BadCandom": 50192,
-  "FUTBALLI18": 94205,
-  "drtel": 67031,
-  "nikotiinn_text": 16118,
-  "nabe_saman": 27392,
-  "Tala_Dollar_ir": 4201,
-  "SoccerrWorld": 8438,
+  "withyashar": 24422,
+  "pm_afshaa": 101551,
+  "IranianMinds": 29923,
+  "hutt_news": 5694,
+  "BadCandom": 50206,
+  "FUTBALLI18": 94225,
+  "drtel": 67057,
+  "nikotiinn_text": 16123,
+  "nabe_saman": 27402,
+  "Tala_Dollar_ir": 4221,
+  "SoccerrWorld": 8466,
   "_events": [
-    {
-      "ts": 1790519564.3561122,
-      "category": "important",
-      "channel": "Newz021"
-    },
     {
       "ts": 1790535209.6430209,
       "category": "war",
