@@ -14,32 +14,12 @@
     "SoccerrWorld": 0
   },
   "_stats": {
-    "since": 1790100398.4494214,
-    "by_category": {
-      "strange": 4,
-      "war": 103,
-      "funny": 10,
-      "important": 88,
-      "random": 18
-    },
-    "by_channel": {
-      "Newz021": 12,
-      "withyashar": 81,
-      "pm_afshaa": 45,
-      "IranianMinds": 32,
-      "BadCandom": 4,
-      "nabe_saman": 6,
-      "Tala_Dollar_ir": 30,
-      "SoccerrWorld": 6,
-      "FUTBALLI18": 6,
-      "drtel": 1
-    }
+    "since": 1790717209.5760748,
+    "by_category": {},
+    "by_channel": {}
   },
-  "Newz021": 65068,
+  "Newz021": 65078,
   "_posted_hashes": [
-    "1fc9d4deff1f8979e3615b96109f5a3f36c5559a90ba1c37d6ffec5169c51704",
-    "d0aa4294b754b385b30c10c5522663cb45e6556f3975ce070eb1102e143713ef",
-    "01b625deee47cdaefaaa28a07d90b28205ce4eb4ff8db1baec480f6d18515324",
     "53deb9b9c3998201b2e6e30eb63c26c69410c3fa0a115adf41ed78b0b3f8ee07",
     "73c34a5d589ea574c4e633d3021c2dac8bfa91ae8442369a784e886ec1a84d8b",
     "e613f7fb6b3dd2e33b36b1698aa6da3943a4b120466b7b674d7bd1b9cb4b8c8c",
@@ -536,20 +516,23 @@
     "b3b3a101029d368d3bc21b358b1167102202a94f1b908391e87c491cd595cef6",
     "f54ddc61b3bea080f08de65350a25aa3bf3ba64483a161e5abd58309683f5085",
     "30923daffe22cc27b67b05ce40948198eb7bde8fb95c613820cbf14d98dd9d93",
-    "3ff784efb09934a857c07007d69c09f04bffc8a8ef21ed5eda134242cfbae143"
+    "3ff784efb09934a857c07007d69c09f04bffc8a8ef21ed5eda134242cfbae143",
+    "bf5972df9f777a6c6fc59532bb9510a13cf6761cccd391cdb9db72a4c94f8280",
+    "e2937e3f57296ac196116a8905cc9d6d25df2daa8c1e8d9e676948ca22e5f335",
+    "6cc969027dc946af554141a524316485dcf53968f9444643c7c28c68f0d433f2"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 24496,
-  "pm_afshaa": 101571,
-  "IranianMinds": 29969,
-  "hutt_news": 5704,
-  "BadCandom": 50234,
-  "FUTBALLI18": 94266,
-  "drtel": 67105,
-  "nikotiinn_text": 16141,
-  "nabe_saman": 27431,
-  "Tala_Dollar_ir": 4280,
-  "SoccerrWorld": 8504,
+  "withyashar": 24515,
+  "pm_afshaa": 101595,
+  "IranianMinds": 29981,
+  "hutt_news": 5709,
+  "BadCandom": 50243,
+  "FUTBALLI18": 94320,
+  "drtel": 67119,
+  "nikotiinn_text": 16147,
+  "nabe_saman": 27439,
+  "Tala_Dollar_ir": 4291,
+  "SoccerrWorld": 8528,
   "_events": [
     {
       "ts": 1790636120.1556346,
@@ -580,6 +563,21 @@
       "ts": 1790645700.1474962,
       "category": "important",
       "channel": "Tala_Dollar_ir"
+    },
+    {
+      "ts": 1790716467.7088697,
+      "category": "random",
+      "channel": "Newz021"
+    },
+    {
+      "ts": 1790716521.340013,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1790716580.8974822,
+      "category": "war",
+      "channel": "withyashar"
     }
   ],
   "_dead_gemini_keys": [
@@ -997,7 +995,10 @@
     "7756426287b040db297eb0bb6e9e921131e78225fe5bd672eedf2be7018095f6",
     "8d741388bb8b6f685cabf93f7af5f8f31b863823e1c9d3fcf5eb9e1aa179781a",
     "efe1d050ef3c40c1049007adc360b55f106bbb31f59f3b18e1db82a30abe3ee3",
-    "26fb6f13b51335c4f230e54c3526abc8a0270dd3cad55081afaf0470947a94fc"
+    "26fb6f13b51335c4f230e54c3526abc8a0270dd3cad55081afaf0470947a94fc",
+    "3eedcdf24827c6650ffd3de0afa31850c3db474dec3296524fd98b31920f7be4",
+    "dabac28a24a0b83405d69fe21e1bdaddef65f56f367f05b392b7752655c8d8d8",
+    "0a0425cd42280716562a6d9ef5c274172c0f85b8f2b595b866ec27c2adef167c"
   ],
   "_posted_topic_hashes": [
     "1cc7042ed519ccee3063eaa8b72eb96ac368fa6bf65c576fede1f27feb19b839",
@@ -1410,6 +1411,9 @@
     "a023ad5c5b331a25aef68ed9c3aa80382bf17c598cc9da6bee584eed9e8af7a8",
     "a124de6eaa3c1353c8520a0647620fafe265876bc7811862bbd08355a7be864e",
     "3d7872e76f44e4ebce16198de16588b18524b608ab6adb6ae6caeb0ad38ef89f",
-    "81414dceeb4cebd067f45d8097342867dd9b7f633472894411b1e40b54cccac7"
+    "81414dceeb4cebd067f45d8097342867dd9b7f633472894411b1e40b54cccac7",
+    "77a12af805b90e6d1e94949c628323e49a371a4c020b49456554d4bd074992d9",
+    "75a80c0ac356e814679cbd43399e97b4b0e6057edb767e7468b2175e30180d29",
+    "a541f05019ad2059eace46fd73976b5e9aa0d92adb6cfa7ddd3fa422ca9fbc5c"
   ]
 }
