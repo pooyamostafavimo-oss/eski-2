@@ -16,53 +16,24 @@
   "_stats": {
     "since": 1791322710.9360247,
     "by_category": {
-      "random": 5,
-      "important": 20,
-      "war": 15,
-      "strange": 3
+      "random": 7,
+      "important": 27,
+      "war": 34,
+      "strange": 5,
+      "funny": 1
     },
     "by_channel": {
       "Newz021": 13,
-      "withyashar": 12,
-      "pm_afshaa": 12,
-      "IranianMinds": 4,
+      "withyashar": 25,
+      "pm_afshaa": 24,
+      "IranianMinds": 8,
       "hutt_news": 1,
-      "Tala_Dollar_ir": 1
+      "Tala_Dollar_ir": 2,
+      "BadCandom": 1
     }
   },
   "Newz021": 65572,
   "_posted_hashes": [
-    "b21936d4934a16e1592252aa8e6a2d37e641085b2c6324c3d4e60e04b32640d8",
-    "aa37a575ad82ca5572ef6be777d674905c94f932ad6b8dc523fab8c1c0785934",
-    "ad808c9ee80bc81c217f83a336919cb5697877516a961795a9f8d12b275bd6e0",
-    "a493e926b6e078a7acb0ae176c3e8bdb396b57f2232211422514831edadb0add",
-    "1a5ad1195a7d00bd595b2ae7b3cc8d64b4b615b67f97897b6a6d3507714492d8",
-    "49322ef3d82bc704beb5a438d7c1920a8f9a199b3de585c64c5dfc21c94e518d",
-    "d099278ebfb47670a92cb7c86f1e6db13d33aab87341fe98b1b3063c74217792",
-    "8bcbc5e22373b73d055215f7deb28217199fde4c05067e84cfda07d7bf8574f1",
-    "ead8910644930719c793811bd344610993bebef359bd433bc94ef38e2e151ce7",
-    "d25896e1575d9cf54c8ab9a1a4c316d36917a4df4077b155bbb1a5c615a99b4c",
-    "5fd7b380e6cee2a2d328c56f999b0d33f10b95cc35574a12ebee83ceba0f59e8",
-    "875e5dc1eb2a8ee718aa46c2e502aa55b539d13bae6e46ee223287b2c0b25079",
-    "8182058184fed69313156dcd91d92b9cab9c8161bf5263d3dd6dd8f764b1481f",
-    "b1149b3331f85ad7aa906ccad26b8a2482724728b535f2d1f8e2c50a71ced0c5",
-    "81b51430cd65e87a75d999374d93e36e29beda6ed28eac095d5765c18c913e20",
-    "aebb74355f0764ca2be48073ccb3334fc2fa7ca9655bfc5684d8292341dbe899",
-    "6d74c4227619010dde48b4571e47c13f835254210e14abe75f633c88e371306f",
-    "e6bea41695ce65a40b1a8a3c9bc2754ca4fa6a1218fc69e547d5a700248780b3",
-    "d939081d755f6e90f25918cb71dc5f61ba25cc51fee4af6e4e597e3072746a8c",
-    "3b6e43be38a83b1a97b05375833d3ff24612cecbe8f54fceec806c48e475bb30",
-    "c06d9610d0e0d5ee3f4baf35e5e3d35a2a4066d726da4f10db51bcede12a5b1f",
-    "fd4f6862775b6f88016b5b35e0d61666d8588111d60856a65486a775ce5fd26a",
-    "c78517a5a6a3dceb8bbaf19bfb1c5b13652e21738b49bb37aabd8f8d1451b8ec",
-    "99e9f29b0d65f4bf59c68fecb1d8c8e701044b17b2b7b67ed3c9cdeffb2ddfe8",
-    "96f17a247269fe267719890397222ed5a29cca9bd76125a1722d7df8d9ea3bf1",
-    "628e86bfb512e34ed94b3207c3d23b6ffcac9c3f08e5602e18c75d32a099f1a3",
-    "fdcc4a6b5bc55f35a68e5d535a718204a8810370e19880995d4cc80466bade83",
-    "4d67970fa53ddb1f20e2aa003f9023f9b373d5aeb576345541f74ecdb267848e",
-    "778479ebee440db5277b07dd458d47c8e1e1fded1d2678c5f6df838010637374",
-    "b5db0c15378fdc342356d87e9d44354049ac3259a35c08f5491f2b93da53afc2",
-    "df8713a3bd0f41cdf9717bf9a135247c5e77c3745809dba7c31c213aa30c2503",
     "59699ccade55380bfadbdddc91aab39216e606ce3c9f9882458e1186af603644",
     "3b7b1e05702a73d8d2d02f23b2f7f86468f770532483dcbaada3afe82de5991d",
     "acd488d863de6fbb54187c89389bf7847df32138d01ba86dcf5ae535aea0b03a",
@@ -531,186 +502,52 @@
     "168d343fcc59814a02930e256620ea5b7882ef2689f660b07c8abc5ca0eeecf7",
     "f6c28ba38eb515f4264309b9a830d655ebbc2cf2a6d0c820e1c13bb2caf1166d",
     "04d3ed34820d0ef30a7acd9f23beed270e6fe3bb2750f0aa11cc6b7300ccd36f",
-    "397a8a0f508792f5e5673f5d2fae45e4f9285651fec18a7a3f72e22c052f9ae7"
+    "397a8a0f508792f5e5673f5d2fae45e4f9285651fec18a7a3f72e22c052f9ae7",
+    "61681eda0d500e8f2870bea76768466adb65f167f8fcfd9102776d5ee7c19e91",
+    "2c6f0463151543ca8b866af8f571eea9549e84471b0455235e7fe78d3a21e2a9",
+    "8115d555aff1fdb4bb78c5fce83b8aabcc5422fe86c9b320fb6b930e888c0e5b",
+    "96223241e645a18b41ab917f7dbe722b50497ae786548cb64aa0558d70322a81",
+    "687ec2296bfc99986e0378d4fba9310c06173ba7c7e6108aa4d4b4e39e40603c",
+    "73854bbdac8894c7fe35aa1d0b696ea7d6a6018289d8ef566cdab404f7a29852",
+    "cbaa0d764ec4c1e56568cc6854955e5cfa065f6215007c80a1d274b4c7292130",
+    "9153c44beacd68cd468a64e24d078ca9b26237f6b43fe1b1fad0c887f2096bfd",
+    "31762bcff7fd4ecd39802216eeea9cb7e4c8bfb3b288652aabd9b5a9861df715",
+    "b8f69ab270c7beeeb1813c32114d84613017e3668d7ba8aec2b7535994ad7378",
+    "7a5bef5b01354f9d4b24e256ce7735dd9cc516ed153903a3efd6662ecd1dc35e",
+    "d905966088c16e1d339a8700f5e4b8564aa20571c7bec6f3fef77a0fee7ca6ab",
+    "79f2fc4a09625024e2c121218a0d086afa1abfbb4fac1744913f78067318cb51",
+    "e808095858240d2f1793bad98b5ba9dd6a4b63b633f824b0458667e5d1f6849e",
+    "b65438b8479018095d95f86002013b987a03f53ee6cdb84e7d94fdf199fc8fda",
+    "92476c1f92145add4b6c672d313fab9bd5b69c4f95bb0666bc4ee2120e917993",
+    "7be6cb940bd9cf2b3578312dd191de50618d435a6160eec3963848fd4c01a66a",
+    "b047b480018060100b8b13118d80e4442f4990f74b5d847305f72ab6099a6bd6",
+    "74a1977d47cffd3dc4357394997a077315c26ce1749e32e610769369c5cace4e",
+    "a4392f533655a02b22871f1bf47c35459f871ba838583ffb5a65a0f1bfd0e6dd",
+    "f77f8b593a657c673a85b7044ab7ffe09963cb495bfd5b662ea6ad89dc1c91c6",
+    "74f2bd33164fe0f60b55ec4ba16d8adff5a8ed9faafa4e3377bc832b2bcd9cf1",
+    "bdb6c96ec2b3fbe7e9de6daeb3bd21a30efd0ff410258bbbdf6aeb7f80b8755b",
+    "7acce06e059674ae6b6b34794ab922ae448f30fa27b69e3411a5f2a8fe1111ee",
+    "247d9f6de872dbeeeb8404a9d2a6e4ba8163a72b18133ead378902029203e668",
+    "39cdb4217f0758e0afb6e4db00c66341543b2e060fa42152f5ff3ac9ff030673",
+    "691bbddf16bea78aab4a748203ea938451b6517791398d2347559bfc77c171ca",
+    "bfe52802d99d4dbe1d8937fa34b78f7159d606caae4ba93606ef79cba3180839",
+    "71800a25cfeb352ecfc1b13c599dd2baecc1332da8f7e303ebdcefb3dc019922",
+    "10e679bb91421fa29ae99cf08a1dab5d331ebed5ac88534da1330e27fcc6980b",
+    "17c398ac18f035423b199a44c5378ea7a4e03954f4179b3d2e9edc2c298e3452"
   ],
   "_alerted_dead_channels": [],
-  "withyashar": 25150,
-  "pm_afshaa": 102070,
-  "IranianMinds": 30366,
+  "withyashar": 25165,
+  "pm_afshaa": 102082,
+  "IranianMinds": 30375,
   "hutt_news": 5821,
-  "BadCandom": 50519,
-  "FUTBALLI18": 94766,
-  "drtel": 67465,
+  "BadCandom": 50524,
+  "FUTBALLI18": 94767,
+  "drtel": 67468,
   "nikotiinn_text": 16263,
-  "nabe_saman": 27684,
-  "Tala_Dollar_ir": 4814,
-  "SoccerrWorld": 8932,
+  "nabe_saman": 27686,
+  "Tala_Dollar_ir": 4830,
+  "SoccerrWorld": 8937,
   "_events": [
-    {
-      "ts": 1791360955.4370627,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791360965.3496404,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361016.3985057,
-      "category": "random",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361044.1126955,
-      "category": "random",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361054.0715506,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361086.300571,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361100.6413937,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361111.2411797,
-      "category": "important",
-      "channel": "Newz021"
-    },
-    {
-      "ts": 1791361130.5146422,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361140.4644268,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361156.95223,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361164.4050035,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361173.4195423,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361190.1964765,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361208.7941885,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361223.6458485,
-      "category": "war",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361236.6034296,
-      "category": "important",
-      "channel": "withyashar"
-    },
-    {
-      "ts": 1791361246.6633775,
-      "category": "strange",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361256.3215299,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361266.395226,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361281.9882162,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361290.7433746,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361301.2455168,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361314.404248,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361323.3563602,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361334.7121718,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361362.0000281,
-      "category": "war",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361373.026629,
-      "category": "important",
-      "channel": "pm_afshaa"
-    },
-    {
-      "ts": 1791361383.0421517,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1791361450.1970959,
-      "category": "important",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1791361496.7225845,
-      "category": "strange",
-      "channel": "IranianMinds"
-    },
-    {
-      "ts": 1791361515.8482974,
-      "category": "important",
-      "channel": "hutt_news"
-    },
-    {
-      "ts": 1791361689.2962112,
-      "category": "important",
-      "channel": "Tala_Dollar_ir"
-    },
     {
       "ts": 1791412445.7653654,
       "category": "strange",
@@ -755,6 +592,161 @@
       "ts": 1791423473.5916138,
       "category": "important",
       "channel": "IranianMinds"
+    },
+    {
+      "ts": 1791448334.7230546,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448399.9502983,
+      "category": "important",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448459.1399312,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448479.4476657,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448562.776132,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448580.273828,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448695.2641754,
+      "category": "important",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448735.2970963,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448818.4402437,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448879.5913236,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448896.1974976,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448928.7926788,
+      "category": "important",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448938.105506,
+      "category": "war",
+      "channel": "withyashar"
+    },
+    {
+      "ts": 1791448950.5966494,
+      "category": "strange",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791448982.487585,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791448993.0144105,
+      "category": "funny",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449002.9768972,
+      "category": "important",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449012.9244566,
+      "category": "strange",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449034.4564478,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449042.5594943,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449068.148796,
+      "category": "random",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449078.4889338,
+      "category": "important",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449101.0564814,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449110.5049336,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449119.4245594,
+      "category": "war",
+      "channel": "pm_afshaa"
+    },
+    {
+      "ts": 1791449218.621823,
+      "category": "war",
+      "channel": "IranianMinds"
+    },
+    {
+      "ts": 1791449229.9380276,
+      "category": "war",
+      "channel": "IranianMinds"
+    },
+    {
+      "ts": 1791449243.459984,
+      "category": "war",
+      "channel": "IranianMinds"
+    },
+    {
+      "ts": 1791449261.3538435,
+      "category": "random",
+      "channel": "IranianMinds"
+    },
+    {
+      "ts": 1791449283.0219502,
+      "category": "important",
+      "channel": "BadCandom"
+    },
+    {
+      "ts": 1791449463.10135,
+      "category": "important",
+      "channel": "Tala_Dollar_ir"
     }
   ],
   "_dead_gemini_keys": [
@@ -762,37 +754,6 @@
     "89cfcf29a9b40cc056c21bd0ce21f1c4de439484137e0c2eb78e05eac4941576"
   ],
   "_posted_source_hashes": [
-    "f0bd8ea901da17dc492448d58f877ae39e6a8cc397f4c07c73fcbbe48f8d4ceb",
-    "f3ede50ef741f826128c544255f90115a8210079521d0de128b63f83bb087d9d",
-    "061bba63ea505cdb806b625aaea55de3968f23c274a3cd59223b719c51a8a7c0",
-    "48484870380041b8bea5a6ea7d792d479b75ad63a4e3442a53dd6a0f63c7ab44",
-    "a9334cdb86bb4ca3f278b3f0610551ab505dc9756db64702b06fe19d695185a0",
-    "9b87201d8acfbd71d3ffc24f5d8ff9ba038d6f41710ed68a1b4c67e27965d2cc",
-    "e66427d7b4cd07685770a6f8a0267ef2e1d615448509bd7883ed65babbd4b5a3",
-    "e43214cc3ab24df2f3406fcdf7cc31e7d657dbfff9fd0265b3984bad27a67579",
-    "e19adfa9b60e89ee27adc627addd302931b9590e515c010112a1982161984ac5",
-    "371aa6fd1f22b3b0345037259436884eb19f65caeb9acd2f518a841ddde8eae1",
-    "e7a2d30c6c6bf9ad663dae7ff67619ecc23bd343608505200dee940d6ff7fa6e",
-    "177399963c1dda8bad3082966c5b2816a0031ae70c16d9c515233fe5cb887bf1",
-    "6290befc28f67a3b6c6f64ac863436ad1d9757e1769244d1497abe479b3f4c6b",
-    "fb0f44313e85bbe0811b457fd8a0ef2220d3da1e706b10c04fb7b0b9890630b4",
-    "31a2257ea7c7b43a0cbcb252644e0e557a72ddc5a365df7f056765958d4f789c",
-    "f7c6392c898841abe99fd64bdb051359d8580ca6587eadaf490a81b5383714f1",
-    "bed03722d28b7079324a741d383b37c65fcab3f297db8381a498d1a394b2220d",
-    "e863e2a143f509ed6bf3521df4376a91988889a49aa68c1d342c52b635c1c857",
-    "0a7dd94f5023a1db4a55c7534f442be68759fbf41ce9b68c246c018de0d784a6",
-    "1edc165fff3a2d2f2833d73364515c058a29936cce07ae4a4543ff47da0368b7",
-    "0b7769adb495babdbfb23ea07d0775e581c7f5dd54c2809e727a55a9d8bc0f4c",
-    "dbd0c9ce21ed6380d66ec9d25907d7da0194e03b32d059a0901a1b05b1e76097",
-    "ebce8926a07cadc0c678aaa03c3071e356f6aa680f3dc0c5d33813318beb9839",
-    "58b7e4ab93dca1e1a59b0782322c01022a8047c73ffb923b2e9f8af94c4d13ef",
-    "4ed363e59e42def21205e98fa0e22ccdb19192b0f175ae62eea4ef49ab404297",
-    "3cfc3c6cf22fe12afe29463a9d2f01d2a0cbc4db33cb05a2c3417e9fa1d29eb6",
-    "d582605ea1fa8131a440cc7a989cb8ade4b288ee954212706c19a908c66425a5",
-    "544bc48c7886cbfe911b47ddef3571113eeec8cc8baa24158cc6d4fd6fd58570",
-    "441a680b0f02b6420fa335091dbb2f84cb093d943f42394031500a014f9e67b2",
-    "34c6bf394482dac64202318be2966e4495c8527a23de32cc518baff415b7bfce",
-    "771c3c4608ec728582404f289e6acf0a3a867ab9c2041b62dc5eee9a7c0ae677",
     "812119fc8930a4eae6827e515b8908cc80ec0f8a2c0c4e810126a0e4edae9695",
     "0aa77bd9f228af8ee7d87605db42dbe75fc976efde9729e7b1fcdb08dc945b45",
     "3f34a18a03e7ba57a93bca09b9d18c80e3633333252d0d95dc9dfb733e87c408",
@@ -1261,40 +1222,40 @@
     "f6e36d7c2b098b164ad3c52b45616bf2302c0ef185370a4edd894a2a67feaa6a",
     "0ee624045620194f31177dbeee5f7e5004fd72d36ea769af4a5faef250bcf907",
     "7e5018ac6f1a65585022b345b8d41571eb53e142c0a1dcc969e7482f724953af",
-    "d0f7fa4f3e15e8703552ee26bb41c0c7c862804b51fae028a0c78773dea47b70"
+    "d0f7fa4f3e15e8703552ee26bb41c0c7c862804b51fae028a0c78773dea47b70",
+    "1028e0f082a6c3fc54d955b6bb4f8b07fa1f6615b41199b00a876fe9eba87f0c",
+    "602850645855aad1b399a3e7f5749c91f02a2a156dc131d0d7649bdc6bfcdd8a",
+    "dd94d4ea829ffdc00404049b44d6858ad978222b4a01f8548594a77ce919aaa8",
+    "9917c809377e44db901ef03c40244290f269966efc312ef775ad26cb6493f817",
+    "89fc2f2d2cb2924b08e3e3c103be66b9c7606c24800dac7e41f5b693f6bce130",
+    "1acf74248f038d5097bad40023be04a0c5dfa1fe40cd94197d0cd35ad9a95be0",
+    "d3f1f4d7e7ddf20691721b175a69f097a948ff573d55a27bb29a2264cb9d0b64",
+    "ab85d6def47359dc55245a24830832366266bb5bf3aae609832c2d26c6d1ea92",
+    "60ac6a6835b4050d1268f63fbff8c361e0bfcf5336d6dabf0db218f2d2d57ecb",
+    "1d87885ca04a75f5d51008b835c3d92ef0af5b6f67c728e7bebf479e77df9c8a",
+    "4a21af7b1f9fe528bce70b635010b956ac978c89246df5bb6b3f2c1974d91ae3",
+    "c9a62ec1fb9280d70bb12bc39a07af83b4e2312b90548b0d1453c73a2f9229dd",
+    "58ab4c5924b9721ba3c222181b820ec22a756b4cbd84c7b77aeff5b4eabfc860",
+    "455bbc64500f73aab50ae22dde8b10bb1ca5fd7b027da05ba4e69d480c97c9a9",
+    "3f2ce2ece37d5289131cc807f89f667097bcaf522f5a2f964232a31a240253b0",
+    "f15f5c29bdaa836383db4a69a888c6523669036d43d8342dbeffbc73bf4aaa55",
+    "294223aa7633672fada245bfd32869b4658251f8a38fc9878a5ec65cc17294f1",
+    "02b18edb44739c64ba3a8e5a9eae7d4a83e4555b9200a4a0545cd5f815bc8df6",
+    "8f66a359cb70d9558b894c4429a3c6c34f6d0ac2912a0a49822a8cdc990a9301",
+    "1ee7eb037d51c2e51c5aab2f8292815ba57d95dfade23b462f5780174353aa71",
+    "8ab61fe96dd73cc53dfb6d856d55f9ee46d84f004daca893b5e3eba5d52a4689",
+    "ae69af9c2d63fb6f5360d639089caeded2db35c372e1f93234f3286f2435ac93",
+    "3ba7ef3a96abe3bb8d7219585b604ab810dc2dad071cb9caaedd21f69ce52ad4",
+    "c09adbd80c0cf18e1bc9aedc455d8df1c8efb768cf88509a67fa551c8d1ee72e",
+    "3cec9c11a5a3e8291010884b3ca0fedfb4d05ad0d2bfe2874ace9841724d5878",
+    "72b7561e329d0f4df4d65d95b24f70224088d3ed8f8b951a41827f80185b7175",
+    "aac0ba80700c45172af3e782539d4035acd032e7eef40319e4f47fa4ba8b63cf",
+    "515165eb3b0f4870912089d7aed01ecb9e00dcdeb1d4e1af5f8cb5c51d7095db",
+    "ea9a11c03b70726b196213132d649054d994520c9110b4ef0559c516ae237377",
+    "c6e096da3060b0f8f1b6c3ce7f432c5fac5ee546378393a5501e2161dbdf8281",
+    "ca01bf740134dd06f68fb13a0a00d6de68f04228c0bb8e1f03b1afa40ad07a9b"
   ],
   "_posted_topic_hashes": [
-    "e79a1b0261d6617a2f3f67651ab587ec7c240a5fd42777cebc9f2847bdd95145",
-    "b77c8cd2f77c43804120f7a2a2c755fa8e5b8fb74322ffe322934b082e1ecb35",
-    "96ad73ac2eb433b948e9d62078090571d6cce2b8f623a2c3bd64788d0addbed9",
-    "f1fd30d7ef4da85e43eceb36bab59002f8bc49077f702f21ef62b06a37d7c30f",
-    "480739801212373261213f6be1a2aaeed9c22a5c68e6cf7406e6e60333f7a13f",
-    "c0f2e895d3a675947308197a5e795e4421c96310019cf639ed916a7e0eabcfa9",
-    "e1f48fa8e116b98e83464152042e10169fe94d1956ddcef008af97cbf0c4d8c2",
-    "46879ed3048bb34f8f0b9163b6cc3f4ed43be172d8e8a2e657d83b6a50da6f8d",
-    "8a3c41eb6a68d6e9c94da2519f3ffe1f339a2a01b0269ccae44657d534a60873",
-    "3a5d5c2e125017c53b5d75b3692e688b9c6819de9d4c670f67561edf49df7bf1",
-    "0ecf19cedcb9e22511506ad0a0b4071f9e4491d095eb5497f38b61bb1ff4745d",
-    "1f06772fdff23b67ba0ecdd6a5d0dca21424922761136d9ea9207b57a177f3f5",
-    "5862c8c150eae692abb5407aeaf3ded538dc9715c3b45c586579d7f738120cfa",
-    "06851a718387ddbaf4afe35f9cd841d4af2c135e366eaa2422d55af7543a4c7b",
-    "d6b6935edeb210126e08cf01dbe840612ec5517d18a52567bcd290cf5410f373",
-    "90112ff0395bc37fd07c06dbfa9bc1532c16814e846dd463a6029461830aca7b",
-    "07f825d5775d32a9830755c0e2f590d6e2cd4aa0bae49fbbb9960af20e9099a5",
-    "45528477309402f8197ec59ef181b85de11c54d16db22d7e53ceae941c5c7f78",
-    "f1059a50f13423bba66dac88360ef60eb43d6d3269c01ecd1076e7f44fd406ce",
-    "a7d1eafc0a605c6507e6e73bb2bdf6dac14319283242c7fbc2de64b0c350f3e8",
-    "03df317f478028937448e0e6a3b9e8a38dab6f7566d2a203488b04f1c08f275f",
-    "5d662407305da78ea9778fd3cd9a7a7624cf9e1c40a3cce6fde81aabe1de8eef",
-    "468eb8ee3928a01f9ffd63a4959ab5cde1d66ffe5432cc861513c55996b364a9",
-    "b62a0f95485e759460731993e267a8c6fa6516a70457497b78c9dc7b390bc9f3",
-    "a835fea541c8325e39e69ddf1056155272e8b171392050775699ac1a580e522c",
-    "2b648d8f1a3929e208dc1a6b120549e18bc2e1cd2842925cb97a8fe7fa245039",
-    "747097cefbc2e899b3b642f53895325c1eab0bdc7e77f8db989dcbea1360a5c0",
-    "0813c0fcbcd7af1938a4e79d641aba276a84587623aa209f4a33c52ae646b7e7",
-    "8620c3dc280bbed411cd7fe3853a708fb80fa92c4cf7da41024242011b1d65a5",
-    "80cfbc01c5326f6f85e8ce94659cec055222378db35ca698f9e41b688e59f777",
-    "fdccaf1a90d6cb9e26f2a09f2ec6c54e93f117e7f08c4cff3a2803f39fb90090",
     "45e4b8c566af9e6bbdca6c1ca586d34b5ab4c62f4c146f88f427a6b876f3650d",
     "3ceb4541eddbd9df3017b433c7b9460f89ad120ce2b9682d84cc4ea022a5a24e",
     "9b62493b2555859242f104a5e1fbb6fbc282e8790c5145054a7c074e6ae61476",
@@ -1763,6 +1724,37 @@
     "bbcc50ae4893ae8882fdbe40bff5f993240f8b2154bbca7f1ef603891a3b3fbe",
     "3f7bf2d8b0b4a429e45e9dc5a778ea287f6e89379e4f19eacbbec5b3fcbfd8b1",
     "da1aba13bde924d20ccafa95ea9773e6570a3a55e85520369cf572c7bed4cc03",
-    "482bd56e322bdfa84e62467cd073dbb40bc2f4b968067718feb5bc616c65ff22"
+    "482bd56e322bdfa84e62467cd073dbb40bc2f4b968067718feb5bc616c65ff22",
+    "66e964451ba2c4ada49454ea05092caac47fc7c0a73ccc9fc9b842f77e8875f9",
+    "70d2134ee51ac894250402daca90dda0067d2472d270133450476ae5255daa22",
+    "db8ec44f7b0c6b4b7c5ad080f48f0f3e8471e546600830dfd4c8548a1f1e8721",
+    "36ca30b26238188df829b68b14199fa90e75fd9049901d749ed809b0d5dddeec",
+    "7bd3100c5405f2b87be91a1d2d7773af3f14d47aa4a3cd289184c09dc7260dc8",
+    "9900d9611442e2c66fcdbad1dbe2a0486805b524bd4f049faceb823f787f754b",
+    "f7f21f1b42fd5d08fcaa3bb57463b1884796222bdead61bba200bafffabe7e41",
+    "85284cfe0df79712b3582df80c15ce8987316889b4846820945a0847a29d0ca2",
+    "0fd1006f58ba9fd2a5d07558511e3396fac9293f89fd53a2114bbfa5a58f05d9",
+    "710003dddcc4c7d8233fd981975ecc3685bffb4221b8cbfc853eba667793eb85",
+    "df6e71b2c87ab4df922c1feaff7f7702c8ac44312352fe9ddba87558f1e0497f",
+    "f899d1bac6b2ee6ffaa1e0a8fcbf069017ed4386456c96a54aeec325f5498e8d",
+    "6845eaf39658ba2142591fcd480fc5e4871fccfd20f00046305bdcf9dd43a250",
+    "c00d54c8562f464cdfa5ecd25a7353489cdec2ca4fdec51f858c22b1999a6e95",
+    "5ad1637759e532833d2f41c575038669c202d51ebebf0790a84c2c6504e77957",
+    "ae6ddfa81a74e87b604ee84e63ed5d2940928c28954b23b96421c5009f292e16",
+    "2d75e9c92a799af70c8974e51bfe7e439f616ddeab47ca0e1a736351364adc07",
+    "56a81ec4b3289b53923111b1c2bb1d63685e7381b7e441cebeff1cc647a398c6",
+    "f597c73d1cbe273b22ac83fb8b89ae1aeb32b7ab3c0199edc60ffd9d60b4fc03",
+    "18b60119d279c10d84ec7e5952d174a3559bfb5c5832dfc2e4ba0edd0234c8e4",
+    "3318e6a5144ed0ba42a2ace07278ff28f016b0ff175484579669ba3226a6e4b2",
+    "56277ee7f533b3debf6643fbd5b2c29f05ebbdedcf1f508e35a79b58f65241a1",
+    "3484549ba5bbd72fca771981d7c8d4c7fa49633d5fc55a66eb87f10e6bc5922e",
+    "28e4451225a1713756c96607247d0cc83bd0528d4fb7b14f61b0f1dee37bfabb",
+    "0ff60c86c05858d4c33b7a4335d92669e8f4142c08702c4307398cb936ad3e22",
+    "4e6e0b372664be36eaa15ed40f3c809c9c91b3bde41915fc8a857b98d69eb886",
+    "7ecb419d6cb8e77d79f861eb91376e65390fd39bca8955126d3ce600cc0a8490",
+    "f93a09da5538bdeb774b60629a7a52bb67818c24e8dc61e8c5842966ce292f11",
+    "01b3a9ff9d3d2712285b56d06b4c56a93648cf2f2505bead9f2ebcfabc498346",
+    "1048ed5aa7f8554ffe0aa8101328ccd57c94f77003fd89c0d825eb7c0ab74299",
+    "5178aef6a9bbd21a1c9ff50e5c22e58c6fadf74471de7feaa2e19fbc4a61f3c4"
   ]
 }
